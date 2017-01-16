@@ -24,42 +24,42 @@ class CameraToolkit(object):
 
     def zoomPlus(self):
 
-        newZoom = self.zoom - 0.1
-        mc.setAttr(('%s.zoom' % self.camera), newZoom)
+        self.zoom = self.zoom - 0.1
+        mc.setAttr(('%s.zoom' % self.camera), self.zoom)
 
     def zoomMinus(self):
 
-        newZoom = self.zoom + 0.1
-        mc.setAttr(('%s.zoom' % self.camera), newZoom)
+        self.zoom = self.zoom + 0.1
+        mc.setAttr(('%s.zoom' % self.camera), self.zoom)
 
     def panUp(self):
 
-        newVertPan = self.vertPan + 0.02
-        mc.setAttr(('%s.verticalPan' % self.camera), newVertPan)
+        self.vertPan = self.vertPan + 0.02
+        mc.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
 
     def panDown(self):
 
-        newVertPan = self.vertPan - 0.02
-        mc.setAttr(('%s.verticalPan' % self.camera), newVertPan)
+        self.vertPan = self.vertPan - 0.02
+        mc.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
 
     def panRight(self):
 
-        newHorizPan = self.horizPan + 0.02
-        mc.setAttr(('%s.horizontalPan' % self.camera), newHorizPan)
+        self.horizPan = self.horizPan + 0.02
+        mc.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
 
     def panLeft(self):
 
-        newHorizPan = self.horizPan - 0.02
-        mc.setAttr(('%s.horizontalPan' % self.camera), newHorizPan)
+        self.horizPan = self.horizPan - 0.02
+        mc.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
 
     def zoomPanReset(self):
 
-        newZoom = 1
-        newVertPan = 0
-        newHorizPan = 0
-        mc.setAttr(('%s.zoom' % self.camera), newZoom)
-        mc.setAttr(('%s.verticalPan' % self.camera), newVertPan)
-        mc.setAttr(('%s.horizontalPan' % self.camera), newHorizPan)
+        self.zoom = 1
+        self.vertPan = 0
+        self.horizPan = 0
+        mc.setAttr(('%s.zoom' % self.camera), self.zoom)
+        mc.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
+        mc.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
         print ('%s was reset.' % self.camera)
 
 class CameraToolkitUI(QtGui.QDialog):
@@ -73,7 +73,12 @@ class CameraToolkitUI(QtGui.QDialog):
         self.buildUI()
 
     def buildUI(self):
+
+        # gBox = QtGui.QGroupBox(self)
         layout = QtGui.QGridLayout(self)
+
+        # gBox.setTitle('2D Zoom and Pan')
+        # gBox.setLayout(layout)
 
         zoomPlusBtn = QtGui.QPushButton('+')
         zoomPlusBtn.clicked.connect(self.toolkit.zoomPlus)
@@ -102,7 +107,6 @@ class CameraToolkitUI(QtGui.QDialog):
         panDownBtn = QtGui.QPushButton('Down')
         panDownBtn.clicked.connect(self.toolkit.panDown)
         layout.addWidget(panDownBtn, 3, 1)
-
 
 def showUI():
 
