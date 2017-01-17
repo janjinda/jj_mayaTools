@@ -74,39 +74,43 @@ class CameraToolkitUI(QtGui.QDialog):
 
     def buildUI(self):
 
-        # gBox = QtGui.QGroupBox(self)
-        layout = QtGui.QGridLayout(self)
+        layoutBox = QtGui.QVBoxLayout(self)
 
-        # gBox.setTitle('2D Zoom and Pan')
-        # gBox.setLayout(layout)
+        gBox = QtGui.QGroupBox(self)
+        gBox.setTitle('2D Zoom and Pan')
+
+        layoutGrid = QtGui.QGridLayout(self)
+        gBox.setLayout(layoutGrid)
+
+        layoutBox.addWidget(gBox)
 
         zoomPlusBtn = QtGui.QPushButton('+')
         zoomPlusBtn.clicked.connect(self.toolkit.zoomPlus)
-        layout.addWidget(zoomPlusBtn, 0, 0)
+        layoutGrid.addWidget(zoomPlusBtn, 0, 0)
 
         resetBtn = QtGui.QPushButton('Reset')
         resetBtn.clicked.connect(self.toolkit.zoomPanReset)
-        layout.addWidget(resetBtn, 0, 1)
+        layoutGrid.addWidget(resetBtn, 0, 1)
 
         zoomMinusBtn = QtGui.QPushButton('-')
         zoomMinusBtn.clicked.connect(self.toolkit.zoomMinus)
-        layout.addWidget(zoomMinusBtn, 0, 2)
+        layoutGrid.addWidget(zoomMinusBtn, 0, 2)
 
         panUpBtn = QtGui.QPushButton('Up')
         panUpBtn.clicked.connect(self.toolkit.panUp)
-        layout.addWidget(panUpBtn, 1, 1)
+        layoutGrid.addWidget(panUpBtn, 1, 1)
 
         panLeftBtn = QtGui.QPushButton('Left')
         panLeftBtn.clicked.connect(self.toolkit.panLeft)
-        layout.addWidget(panLeftBtn, 2, 0)
+        layoutGrid.addWidget(panLeftBtn, 2, 0)
 
         panRightBtn = QtGui.QPushButton('Left')
         panRightBtn.clicked.connect(self.toolkit.panRight)
-        layout.addWidget(panRightBtn, 2, 2)
+        layoutGrid.addWidget(panRightBtn, 2, 2)
 
         panDownBtn = QtGui.QPushButton('Down')
         panDownBtn.clicked.connect(self.toolkit.panDown)
-        layout.addWidget(panDownBtn, 3, 1)
+        layoutGrid.addWidget(panDownBtn, 3, 1)
 
 def showUI():
 
