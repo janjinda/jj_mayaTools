@@ -2,27 +2,26 @@ import maya.cmds as mc
 
 
 class ViewportToggle(object):
+
     def __init__(self):
 
         self.panelFocused = mc.getPanel(withFocus=True)
 
     def selectionHighlight(self):
 
-        # Toggles the selection highlight in current viewport
-
         if mc.getPanel(typeOf=self.panelFocused) == 'modelPanel':
-            state = mc.modelEditor(self.panelFocused, q=True, selectionHiliteDisplay=False)
 
+            state = mc.modelEditor(self.panelFocused, q=True, selectionHiliteDisplay=False)
             mc.modelEditor(self.panelFocused, e=True, selectionHiliteDisplay=(not state))
 
     def wireOnShaded(self):
 
         if mc.getPanel(typeOf=self.panelFocused) == 'modelPanel':
-            state = mc.modelEditor(self.panelFocused, q=True, wireframeOnShaded=False)
 
+            state = mc.modelEditor(self.panelFocused, q=True, wireframeOnShaded=False)
             mc.modelEditor(self.panelFocused, e=True, wireframeOnShaded=(not state))
 
-    def polygonViewToggle(self):
+    def polygonView(self):
 
         if mc.getPanel(typeOf=self.panelFocused) == 'modelPanel':
             state = mc.modelEditor(self.panelFocused, query=True, polymeshes=True)
