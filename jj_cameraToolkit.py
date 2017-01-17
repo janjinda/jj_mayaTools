@@ -2,16 +2,36 @@ import maya.cmds as mc
 from PySide import QtCore, QtGui
 
 
-class CameraToolkit(object):
+class ZoomPan(object):
+
     def __init__(self):
 
         self.panelFocused = mc.getPanel(withFocus=True)
 
-        self.panelType = (True if mc.getPanel(typeOf=self.panelFocused)=='modelPanel' else False)
+        try:
 
-        if self.panelType == True:
+            self.panelTest()
 
-            self.camera = mc.listRelatives(mc.modelPanel(self.panelFocused, q=True, camera=True), children=True)[0]
+        except RuntimeError:
+
+            print "Not in model panel!"
+
+        else:
+
+            self.camera = mc.modelPanel(self.panelFocused, q=True, camera=True)
+            self.camera = self.camera.split(':', 1)[-1]
+
+            print self.camera
+
+            if mc.objectType(self.camera) == 'camera':
+
+                print "It is correct!"
+                pass
+
+            else:
+
+                print "It is wrong, selecting relative!"
+                self.camera = mc.listRelatives(self.camera, children=True)[0]
 
             mc.setAttr(('%s.panZoomEnabled' % self.camera), 1)
 
@@ -19,37 +39,41 @@ class CameraToolkit(object):
             self.vertPan = mc.getAttr('%s.verticalPan' % self.camera)
             self.horizPan = mc.getAttr('%s.horizontalPan' % self.camera)
 
-        else:
-            raise RuntimeError('Not in model panel!')
+    def panelTest(self):
+
+        panelType = mc.getPanel(typeOf=self.panelFocused)
+
+        if panelType != 'modelPanel':
+            raise RuntimeError
 
     def zoomPlus(self):
 
-        self.zoom = self.zoom - 0.1
+        self.zoom -= 0.1
         mc.setAttr(('%s.zoom' % self.camera), self.zoom)
 
     def zoomMinus(self):
 
-        self.zoom = self.zoom + 0.1
+        self.zoom += 0.1
         mc.setAttr(('%s.zoom' % self.camera), self.zoom)
 
     def panUp(self):
 
-        self.vertPan = self.vertPan + 0.02
+        self.vertPan += 0.02
         mc.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
 
     def panDown(self):
 
-        self.vertPan = self.vertPan - 0.02
+        self.vertPan -= 0.02
         mc.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
 
     def panRight(self):
 
-        self.horizPan = self.horizPan + 0.02
+        self.horizPan += 0.02
         mc.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
 
     def panLeft(self):
 
-        self.horizPan = self.horizPan - 0.02
+        self.horizPan -= 0.02
         mc.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
 
     def zoomPanReset(self):
@@ -62,13 +86,14 @@ class CameraToolkit(object):
         mc.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
         print ('%s was reset.' % self.camera)
 
+
 class CameraToolkitUI(QtGui.QDialog):
 
     def __init__(self):
         super(CameraToolkitUI, self).__init__()
 
         self.setWindowTitle('Camera Toolkit')
-        self.toolkit = CameraToolkit()
+        self.toolkit = ZoomPan()
 
         self.buildUI()
 
@@ -112,8 +137,10 @@ class CameraToolkitUI(QtGui.QDialog):
         panDownBtn.clicked.connect(self.toolkit.panDown)
         layoutGrid.addWidget(panDownBtn, 3, 1)
 
+
 def showUI():
 
     ui = CameraToolkitUI()
     ui.show()
     return ui
+
