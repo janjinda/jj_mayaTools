@@ -45,22 +45,26 @@ class ZoomPan(object):
             self.camera = mc.listRelatives(self.camera, children=True)[0]
 
     def zoomPlus(self):
-
+        
+        self.__init__()
         self.zoom -= 0.1
         mc.setAttr(('%s.zoom' % self.camera), self.zoom)
 
     def zoomMinus(self):
-
+        
+        self.__init__()
         self.zoom += 0.1
         mc.setAttr(('%s.zoom' % self.camera), self.zoom)
 
     def panUp(self):
-
+        
+        self.__init__()
         self.vertPan += 0.02
         mc.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
 
     def panDown(self):
-
+        
+        self.__init__()
         self.vertPan -= 0.02
         mc.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
 
@@ -70,12 +74,14 @@ class ZoomPan(object):
         mc.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
 
     def panLeft(self):
-
+        
+        self.__init__()
         self.horizPan -= 0.02
         mc.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
 
     def zoomPanReset(self):
-
+        
+        self.__init__()
         self.zoom = 1
         self.vertPan = 0
         self.horizPan = 0
