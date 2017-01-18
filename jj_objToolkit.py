@@ -29,7 +29,7 @@ class ObjToolkit(object):
         self.filePath = mc.fileDialog2(fileMode=self.fileMode, caption=self.caption, dialogStyle=2,
                                        okCaption=self.okCaption, fileFilter="Waveform OBJ (*.obj *.OBJ)")
 
-    def importSingle(self):
+    def importSingle(self, *args):
 
         # Defines single file import variables and runs dialogPop function
 
@@ -55,7 +55,7 @@ class ObjToolkit(object):
 
         mc.select(clear=True)
 
-    def importBatch(self):
+    def importBatch(self, *args):
 
         # Defines directory import variables and runs dialogPop function
 
@@ -85,7 +85,7 @@ class ObjToolkit(object):
 
             mc.select(clear=True)
 
-    def importSingleBShape(self):
+    def importSingleBShape(self, *args):
 
         self.selection = mc.ls(selection=True)
 
@@ -95,7 +95,7 @@ class ObjToolkit(object):
         mc.delete(self.newGeoName)
         mc.delete(self.selection, constructionHistory=True)
 
-    def importBatchBShape(self):
+    def importBatchBShape(self, *args):
 
         self.importBatch()
 
@@ -105,7 +105,7 @@ class ObjToolkit(object):
             mc.delete(geo)
             mc.delete(geo[0:-1], constructionHistory=True)
 
-    def exportBatch(self):
+    def exportBatch(self, *args):
 
         self.caption = "Batch OBJ export"
         self.fileMode = 3
