@@ -17,21 +17,8 @@ class ZoomPan(object):
             print "Not in model panel!"
 
         else:
-
-            self.camera = mc.modelPanel(self.panelFocused, q=True, camera=True)
-            self.camera = self.camera.split(':', 1)[-1]
-
-            print self.camera
-
-            if mc.objectType(self.camera) == 'camera':
-
-                print "It is correct!"
-                pass
-
-            else:
-
-                print "It is wrong, selecting relative!"
-                self.camera = mc.listRelatives(self.camera, children=True)[0]
+            
+            self.getCamera()
 
             mc.setAttr(('%s.panZoomEnabled' % self.camera), 1)
 
@@ -45,6 +32,17 @@ class ZoomPan(object):
 
         if panelType != 'modelPanel':
             raise RuntimeError
+            
+    def getCamera(self):
+        
+        self.camera = mc.modelPanel(self.panelFocused, q=True, camera=True)
+        
+        if mc.objectType(self.camera) == 'camera':
+
+            pass
+
+        else:
+            self.camera = mc.listRelatives(self.camera, children=True)[0]
 
     def zoomPlus(self):
 
