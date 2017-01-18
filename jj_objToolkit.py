@@ -154,48 +154,45 @@ class ObjToolkit(object):
     def rename(self):
 
         self.newGeoName = mc.rename(self.geoName, '%s%s' % (self.fileName, self.suffix))
-        
-class ObjToolkitUI(object):
-	
-	windowName = "ObjToolkitUI"
 
-	def __init__(self):
-				
-		self.toolkit = ObjToolkit()
-        
-		if mc.window(self.windowName, query=True, exists=True):
-			
-			mc.deleteUI(self.windowName)
-		
-		mc.window(self.windowName, title="JJ Obj Toolkit")
-		
-		self.buildUI()
-				
-	def buildUI(self):
-		
-		columnMain = mc.columnLayout(rowSpacing=10)
-		
-		mc.frameLayout(label='Import', collapsable=False)
-		mc.columnLayout(rowSpacing=2)
-		
-		iSingleBtn = mc.button(label="Import Single OBJ", w=175, h=25, c=self.toolkit.importSingle)
-		iBatchBtn = mc.button(label="Import Batch OBJ", w=175, h=25, c=self.toolkit.importBatch)
-		iSingleBSBtn = mc.button(label="Import Single OBJ as bShape", w=175, h=25, c=self.toolkit.importSingleBShape)
-		iBatchBSBtn = mc.button(label="Import Batch OBJ as bShape", w=175, h=25, c=self.toolkit.importBatchBShape)
-		
-		mc.setParent(columnMain)
-		
-		
-		mc.frameLayout(label='Export', collapsable=False)
-		mc.columnLayout(rowSpacing=2)
-		
-		eBatchBtn = mc.button(label="Export Batch OBJ", w=175, h=25, c=self.toolkit.exportBatch)
-		                         
+
+class ObjToolkitUI(object):
+    windowName = "ObjToolkitUI"
+
+    def __init__(self):
+        self.toolkit = ObjToolkit()
+
+        if mc.window(self.windowName, query=True, exists=True):
+            mc.deleteUI(self.windowName)
+
+        mc.window(self.windowName, title="JJ Obj Toolkit")
+
+        self.buildUI()
+
+    def buildUI(self):
+        columnMain = mc.columnLayout(rowSpacing=10)
+
+        mc.frameLayout(label='Import', collapsable=False)
+        mc.columnLayout(rowSpacing=2)
+
+        iSingleBtn = mc.button(label="Import Single OBJ", w=175, h=25, c=self.toolkit.importSingle)
+        iBatchBtn = mc.button(label="Import Batch OBJ", w=175, h=25, c=self.toolkit.importBatch)
+        iSingleBSBtn = mc.button(label="Import Single OBJ as bShape", w=175, h=25, c=self.toolkit.importSingleBShape)
+        iBatchBSBtn = mc.button(label="Import Batch OBJ as bShape", w=175, h=25, c=self.toolkit.importBatchBShape)
+
+        mc.setParent(columnMain)
+
+        mc.frameLayout(label='Export', collapsable=False)
+        mc.columnLayout(rowSpacing=2)
+
+        eBatchBtn = mc.button(label="Export Batch OBJ", w=175, h=25, c=self.toolkit.exportBatch)
+
 
 class ObjToolkitUIQt(QtGui.QDialog):
 
     def __init__(self):
-        super(ObjToolkitUI, self).__init__()
+
+        super(ObjToolkitUIQt, self).__init__()
 
         self.setWindowTitle('OBJ Toolkit')
         self.toolkit = ObjToolkit()
@@ -227,17 +224,16 @@ class ObjToolkitUIQt(QtGui.QDialog):
 
 
 def showUI(type="cmds"):
-    
-	if type == "cmds":
+    if type == "cmds":
 
-		# maya cmds UI
-		ui = ObjToolkitUI()
-		mc.showWindow(ui.windowName)
-		
-	elif type == "qt":
-    
-		# Qt UI
-		ui = ObjToolkitUIQt()
-		ui.show()
-		   
-	return ui
+        # maya cmds UI
+        ui = ObjToolkitUI()
+        mc.showWindow(ui.windowName)
+
+    elif type == "qt":
+
+        # Qt UI
+        ui = ObjToolkitUIQt()
+        ui.show()
+
+    return ui

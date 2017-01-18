@@ -17,7 +17,7 @@ class ZoomPan(object):
             print "Not in model panel!"
 
         else:
-            
+
             self.getCamera()
 
             mc.setAttr(('%s.panZoomEnabled' % self.camera), 1)
@@ -32,11 +32,11 @@ class ZoomPan(object):
 
         if panelType != 'modelPanel':
             raise RuntimeError
-            
+
     def getCamera(self):
-        
+
         self.camera = mc.modelPanel(self.panelFocused, q=True, camera=True)
-        
+
         if mc.objectType(self.camera) == 'camera':
 
             pass
@@ -45,25 +45,25 @@ class ZoomPan(object):
             self.camera = mc.listRelatives(self.camera, children=True)[0]
 
     def zoomPlus(self, *args):
-        
+
         self.__init__()
         self.zoom -= 0.1
         mc.setAttr(('%s.zoom' % self.camera), self.zoom)
 
     def zoomMinus(self, *args):
-        
+
         self.__init__()
         self.zoom += 0.1
         mc.setAttr(('%s.zoom' % self.camera), self.zoom)
 
     def panUp(self, *args):
-        
+
         self.__init__()
         self.vertPan += 0.02
         mc.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
 
     def panDown(self, *args):
-        
+
         self.__init__()
         self.vertPan -= 0.02
         mc.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
@@ -74,13 +74,13 @@ class ZoomPan(object):
         mc.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
 
     def panLeft(self, *args):
-        
+
         self.__init__()
         self.horizPan -= 0.02
         mc.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
 
     def zoomPanReset(self, *args):
-        
+
         self.__init__()
         self.zoom = 1
         self.vertPan = 0
@@ -90,54 +90,54 @@ class ZoomPan(object):
         mc.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
         print ('%s was reset.' % self.camera)
 
+
 class CameraToolkitUI(object):
-	
-	windowName = "CameraToolkitUI"
+    windowName = "CameraToolkitUI"
 
-	def __init__(self):
-				
-		self.toolkitA = ZoomPan()
-        
-		if mc.window(self.windowName, query=True, exists=True):
-			
-			mc.deleteUI(self.windowName)
-		
-		mc.window(self.windowName, title="JJ Camera Toolkit")
-		
-		self.buildUI()
-				
-	def buildUI(self):
-		
-		mc.columnLayout()
-		
-		mc.frameLayout(label='2D Zoom and Pan', collapsable=True)
-		
-		layoutForm = mc.formLayout(numberOfDivisions=100)
-		
-		resetBtn = mc.button(label="Reset", w=50, h=25, c=self.toolkitA.zoomPanReset)
-		zoomMinusBtn = mc.button(label="-", w=50, h=25, c=self.toolkitA.zoomMinus)
-		zoomPlusBtn = mc.button(label="+", w=50, h=25, c=self.toolkitA.zoomPlus)
-		panUpBtn = mc.button(label="Up", w=50, h=25, c=self.toolkitA.panUp)
-		panLeftBtn = mc.button(label="Left", w=50, h=25, c=self.toolkitA.panLeft)
-		panRightBtn = mc.button(label="Right", w=50, h=25, c=self.toolkitA.panRight)
-		panDownBtn = mc.button(label="Down", w=50, h=25, c=self.toolkitA.panDown)
+    def __init__(self):
+        self.toolkitA = ZoomPan()
 
-		mc.formLayout(layoutForm, e=True, attachForm=[(zoomMinusBtn, 'top', 5), (zoomMinusBtn, 'left', 5),
-		                                              (resetBtn, 'top', 5), (resetBtn, 'left', 65),
-		                                              (zoomPlusBtn, 'top', 5), (zoomPlusBtn, 'left', 125), (zoomPlusBtn, 'right', 5),
-		                                              (panUpBtn, 'top', 35 ), (panUpBtn, 'left', 65),
-		                                              (panLeftBtn, 'top', 65 ), (panLeftBtn, 'left', 5),
-		                                              (panRightBtn, 'top', 65), (panRightBtn, 'left', 125), (panRightBtn, 'right', 5),
-		                                              (panDownBtn, 'top', 95 ), (panDownBtn, 'left', 65), (panDownBtn, 'bottom', 5)])
-		
+        if mc.window(self.windowName, query=True, exists=True):
+            mc.deleteUI(self.windowName)
+
+        mc.window(self.windowName, title="JJ Camera Toolkit")
+
+        self.buildUI()
+
+    def buildUI(self):
+        mc.columnLayout()
+
+        mc.frameLayout(label='2D Zoom and Pan', collapsable=True)
+
+        layoutForm = mc.formLayout(numberOfDivisions=100)
+
+        resetBtn = mc.button(label="Reset", w=50, h=25, c=self.toolkitA.zoomPanReset)
+        zoomMinusBtn = mc.button(label="-", w=50, h=25, c=self.toolkitA.zoomMinus)
+        zoomPlusBtn = mc.button(label="+", w=50, h=25, c=self.toolkitA.zoomPlus)
+        panUpBtn = mc.button(label="Up", w=50, h=25, c=self.toolkitA.panUp)
+        panLeftBtn = mc.button(label="Left", w=50, h=25, c=self.toolkitA.panLeft)
+        panRightBtn = mc.button(label="Right", w=50, h=25, c=self.toolkitA.panRight)
+        panDownBtn = mc.button(label="Down", w=50, h=25, c=self.toolkitA.panDown)
+
+        mc.formLayout(layoutForm, e=True, attachForm=[(zoomMinusBtn, 'top', 5), (zoomMinusBtn, 'left', 5),
+                                                      (resetBtn, 'top', 5), (resetBtn, 'left', 65),
+                                                      (zoomPlusBtn, 'top', 5), (zoomPlusBtn, 'left', 125),
+                                                      (zoomPlusBtn, 'right', 5),
+                                                      (panUpBtn, 'top', 35), (panUpBtn, 'left', 65),
+                                                      (panLeftBtn, 'top', 65), (panLeftBtn, 'left', 5),
+                                                      (panRightBtn, 'top', 65), (panRightBtn, 'left', 125),
+                                                      (panRightBtn, 'right', 5),
+                                                      (panDownBtn, 'top', 95), (panDownBtn, 'left', 65),
+                                                      (panDownBtn, 'bottom', 5)])
+
+
 class CameraToolkitUIQt(QtGui.QDialog):
-
     def __init__(self):
         super(CameraToolkitUIQt, self).__init__()
 
         self.setWindowTitle('JJ Camera Toolkit')
         self.toolkit = ZoomPan()
-        
+
         self.buildUI()
 
     def buildUI(self):
@@ -183,17 +183,16 @@ class CameraToolkitUIQt(QtGui.QDialog):
 
 
 def showUI(type='cmds'):
-	
-	if type == "cmds":
+    if type == "cmds":
 
-		# maya cmds UI
-		ui = CameraToolkitUI()
-		mc.showWindow(ui.windowName)
-		
-	elif type == "qt":
-    
-		# Qt UI
-		ui = CameraToolkitUIQt()
-		ui.show()
-		   
-	return ui
+        # maya cmds UI
+        ui = CameraToolkitUI()
+        mc.showWindow(ui.windowName)
+
+    elif type == "qt":
+
+        # Qt UI
+        ui = CameraToolkitUIQt()
+        ui.show()
+
+    return ui
