@@ -1,4 +1,4 @@
-import maya.cmds as mc
+from maya import cmds
 
 # defining dictionary of possible suffixes
 SUFFIXES = {
@@ -24,7 +24,7 @@ def renameSimple(selection=False):
     """
 
     # stores an selected object to the selection variable
-    objects = mc.ls(selection=selection, dag=True, long=True)
+    objects = cmds.ls(selection=selection, dag=True, long=True)
 
     if selection and not objects:
         raise RuntimeError("You don't have anything selected!")
@@ -37,13 +37,13 @@ def renameSimple(selection=False):
         shortName = obj.split("|")[-1]
 
         # diggs into the hierarchy and finds type of the object or child, if there's a hierarchy
-        children = mc.listRelatives(obj, children=True, fullPath=True) or []
+        children = cmds.listRelatives(obj, children=True, fullPath=True) or []
 
         if len(children) == 1:
             child = children[0]
-            objType = mc.objectType(child)
+            objType = cmds.objectType(child)
         else:
-            objType = mc.objectType(obj)
+            objType = cmds.objectType(obj)
 
         # assigning suffix from the dictionary to suffix variable
         suffix = SUFFIXES.get(objType, DEFAULT_SUFFIX)
@@ -58,7 +58,7 @@ def renameSimple(selection=False):
 
         # creating new name for the object and renaming it
         newName = '%s_%s' % (shortName, suffix)
-        mc.rename(obj, newName)
+        cmds.rename(obj, newName)
 
         index = objects.index(obj)
         objects[index] = obj.replace(shortName, newName)

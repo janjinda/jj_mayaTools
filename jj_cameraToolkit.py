@@ -1,4 +1,4 @@
-import maya.cmds as mc
+from maya import cmds
 from PySide import QtCore, QtGui
 
 
@@ -6,7 +6,7 @@ class ZoomPan(object):
 
     def __init__(self):
 
-        self.panelFocused = mc.getPanel(withFocus=True)
+        self.panelFocused = cmds.getPanel(withFocus=True)
 
         try:
 
@@ -20,64 +20,64 @@ class ZoomPan(object):
 
             self.getCamera()
 
-            mc.setAttr(('%s.panZoomEnabled' % self.camera), 1)
+            cmds.setAttr(('%s.panZoomEnabled' % self.camera), 1)
 
-            self.zoom = mc.getAttr('%s.zoom' % self.camera)
-            self.vertPan = mc.getAttr('%s.verticalPan' % self.camera)
-            self.horizPan = mc.getAttr('%s.horizontalPan' % self.camera)
+            self.zoom = cmds.getAttr('%s.zoom' % self.camera)
+            self.vertPan = cmds.getAttr('%s.verticalPan' % self.camera)
+            self.horizPan = cmds.getAttr('%s.horizontalPan' % self.camera)
 
     def panelTest(self):
 
-        panelType = mc.getPanel(typeOf=self.panelFocused)
+        panelType = cmds.getPanel(typeOf=self.panelFocused)
 
         if panelType != 'modelPanel':
             raise RuntimeError
 
     def getCamera(self):
 
-        self.camera = mc.modelPanel(self.panelFocused, q=True, camera=True)
+        self.camera = cmds.modelPanel(self.panelFocused, q=True, camera=True)
 
-        if mc.objectType(self.camera) == 'camera':
+        if cmds.objectType(self.camera) == 'camera':
 
             pass
 
         else:
-            self.camera = mc.listRelatives(self.camera, children=True)[0]
+            self.camera = cmds.listRelatives(self.camera, children=True)[0]
 
     def zoomPlus(self, *args):
 
         self.__init__()
         self.zoom -= 0.1
-        mc.setAttr(('%s.zoom' % self.camera), self.zoom)
+        cmds.setAttr(('%s.zoom' % self.camera), self.zoom)
 
     def zoomMinus(self, *args):
 
         self.__init__()
         self.zoom += 0.1
-        mc.setAttr(('%s.zoom' % self.camera), self.zoom)
+        cmds.setAttr(('%s.zoom' % self.camera), self.zoom)
 
     def panUp(self, *args):
 
         self.__init__()
         self.vertPan += 0.02
-        mc.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
+        cmds.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
 
     def panDown(self, *args):
 
         self.__init__()
         self.vertPan -= 0.02
-        mc.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
+        cmds.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
 
     def panRight(self, *args):
 
         self.horizPan += 0.02
-        mc.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
+        cmds.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
 
     def panLeft(self, *args):
 
         self.__init__()
         self.horizPan -= 0.02
-        mc.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
+        cmds.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
 
     def zoomPanReset(self, *args):
 
@@ -85,9 +85,9 @@ class ZoomPan(object):
         self.zoom = 1
         self.vertPan = 0
         self.horizPan = 0
-        mc.setAttr(('%s.zoom' % self.camera), self.zoom)
-        mc.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
-        mc.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
+        cmds.setAttr(('%s.zoom' % self.camera), self.zoom)
+        cmds.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
+        cmds.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
         print ('%s was reset.' % self.camera)
 
 
@@ -97,38 +97,38 @@ class CameraToolkitUI(object):
     def __init__(self):
         self.toolkitA = ZoomPan()
 
-        if mc.window(self.windowName, query=True, exists=True):
-            mc.deleteUI(self.windowName)
+        if cmds.window(self.windowName, query=True, exists=True):
+            cmds.deleteUI(self.windowName)
 
-        mc.window(self.windowName, title="JJ Camera Toolkit")
+        cmds.window(self.windowName, title="JJ Camera Toolkit")
 
         self.buildUI()
 
     def buildUI(self):
-        mc.columnLayout()
+        cmds.columnLayout()
 
-        mc.frameLayout(label='2D Zoom and Pan', collapsable=True)
+        cmds.frameLayout(label='2D Zoom and Pan', collapsable=True)
 
-        layoutForm = mc.formLayout(numberOfDivisions=100)
+        layoutForm = cmds.formLayout(numberOfDivisions=100)
 
-        resetBtn = mc.button(label="Reset", w=50, h=25, c=self.toolkitA.zoomPanReset)
-        zoomMinusBtn = mc.button(label="-", w=50, h=25, c=self.toolkitA.zoomMinus)
-        zoomPlusBtn = mc.button(label="+", w=50, h=25, c=self.toolkitA.zoomPlus)
-        panUpBtn = mc.button(label="Up", w=50, h=25, c=self.toolkitA.panUp)
-        panLeftBtn = mc.button(label="Left", w=50, h=25, c=self.toolkitA.panLeft)
-        panRightBtn = mc.button(label="Right", w=50, h=25, c=self.toolkitA.panRight)
-        panDownBtn = mc.button(label="Down", w=50, h=25, c=self.toolkitA.panDown)
+        resetBtn = cmds.button(label="Reset", w=50, h=25, c=self.toolkitA.zoomPanReset)
+        zoomMinusBtn = cmds.button(label="-", w=50, h=25, c=self.toolkitA.zoomMinus)
+        zoomPlusBtn = cmds.button(label="+", w=50, h=25, c=self.toolkitA.zoomPlus)
+        panUpBtn = cmds.button(label="Up", w=50, h=25, c=self.toolkitA.panUp)
+        panLeftBtn = cmds.button(label="Left", w=50, h=25, c=self.toolkitA.panLeft)
+        panRightBtn = cmds.button(label="Right", w=50, h=25, c=self.toolkitA.panRight)
+        panDownBtn = cmds.button(label="Down", w=50, h=25, c=self.toolkitA.panDown)
 
-        mc.formLayout(layoutForm, e=True, attachForm=[(zoomMinusBtn, 'top', 5), (zoomMinusBtn, 'left', 5),
-                                                      (resetBtn, 'top', 5), (resetBtn, 'left', 65),
-                                                      (zoomPlusBtn, 'top', 5), (zoomPlusBtn, 'left', 125),
-                                                      (zoomPlusBtn, 'right', 5),
-                                                      (panUpBtn, 'top', 35), (panUpBtn, 'left', 65),
-                                                      (panLeftBtn, 'top', 65), (panLeftBtn, 'left', 5),
-                                                      (panRightBtn, 'top', 65), (panRightBtn, 'left', 125),
-                                                      (panRightBtn, 'right', 5),
-                                                      (panDownBtn, 'top', 95), (panDownBtn, 'left', 65),
-                                                      (panDownBtn, 'bottom', 5)])
+        cmds.formLayout(layoutForm, e=True, attachForm=[(zoomMinusBtn, 'top', 5), (zoomMinusBtn, 'left', 5),
+                                                        (resetBtn, 'top', 5), (resetBtn, 'left', 65),
+                                                        (zoomPlusBtn, 'top', 5), (zoomPlusBtn, 'left', 125),
+                                                        (zoomPlusBtn, 'right', 5),
+                                                        (panUpBtn, 'top', 35), (panUpBtn, 'left', 65),
+                                                        (panLeftBtn, 'top', 65), (panLeftBtn, 'left', 5),
+                                                        (panRightBtn, 'top', 65), (panRightBtn, 'left', 125),
+                                                        (panRightBtn, 'right', 5),
+                                                        (panDownBtn, 'top', 95), (panDownBtn, 'left', 65),
+                                                        (panDownBtn, 'bottom', 5)])
 
 
 class CameraToolkitUIQt(QtGui.QDialog):
@@ -187,7 +187,7 @@ def showUI(type='cmds'):
 
         # maya cmds UI
         ui = CameraToolkitUI()
-        mc.showWindow(ui.windowName)
+        cmds.showWindow(ui.windowName)
 
     elif type == "qt":
 

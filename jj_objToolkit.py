@@ -1,4 +1,4 @@
-import maya.cmds as mc
+from maya import cmds
 from PySide import QtCore, QtGui
 import os
 import re
@@ -26,8 +26,8 @@ class ObjToolkit(object):
 
         # Opens dialog based on functions settings
 
-        self.filePath = mc.fileDialog2(fileMode=self.fileMode, caption=self.caption, dialogStyle=2,
-                                       okCaption=self.okCaption, fileFilter="Waveform OBJ (*.obj *.OBJ)")
+        self.filePath = cmds.fileDialog2(fileMode=self.fileMode, caption=self.caption, dialogStyle=2,
+                                         okCaption=self.okCaption, fileFilter="Waveform OBJ (*.obj *.OBJ)")
 
     def importSingle(self, *args):
 
@@ -39,8 +39,8 @@ class ObjToolkit(object):
 
         self.dialogPop()
 
-        self.importedFile = mc.file(self.filePath, i=True, type="OBJ", ignoreVersion=True, renameAll=True,
-                                    mergeNamespacesOnClash=False, options="mo=0", pr=True, returnNewNodes=True)
+        self.importedFile = cmds.file(self.filePath, i=True, type="OBJ", ignoreVersion=True, renameAll=True,
+                                      mergeNamespacesOnClash=False, options="mo=0", pr=True, returnNewNodes=True)
 
         for name in self.filePath:
             lastName = name.split("/")[-1]
@@ -53,7 +53,7 @@ class ObjToolkit(object):
 
         self.rename()
 
-        mc.select(clear=True)
+        cmds.select(clear=True)
 
     def importBatch(self, *args):
 
@@ -69,9 +69,9 @@ class ObjToolkit(object):
                           each.endswith('.obj') or each.endswith('.OBJ')]
 
         for each in self.dirItems:
-            self.importedFile = mc.file(('%s/%s' % (self.filePath[0], each)), i=True, type="OBJ", ignoreVersion=True,
-                                        renameAll=True,
-                                        mergeNamespacesOnClash=False, options="mo=0", pr=True, returnNewNodes=True)
+            self.importedFile = cmds.file(('%s/%s' % (self.filePath[0], each)), i=True, type="OBJ", ignoreVersion=True,
+                                          renameAll=True,
+                                          mergeNamespacesOnClash=False, options="mo=0", pr=True, returnNewNodes=True)
 
             self.fileName = each[0:-4]
             self.fileName = re.sub('[^0-9a-zA-Z]', '_', self.fileName)
@@ -83,41 +83,41 @@ class ObjToolkit(object):
 
             self.newGeoList.append(self.newGeoName)
 
-            mc.select(clear=True)
+            cmds.select(clear=True)
 
     def importSingleBShape(self, *args):
 
-        self.selection = mc.ls(selection=True)
+        self.selection = cmds.ls(selection=True)
 
         self.importSingle()
-        blend = mc.blendShape(self.newGeoName, self.selection)[0]
-        mc.setAttr('%s.%s' % (blend, self.newGeoName), 1)
-        mc.delete(self.newGeoName)
-        mc.delete(self.selection, constructionHistory=True)
+        blend = cmds.blendShape(self.newGeoName, self.selection)[0]
+        cmds.setAttr('%s.%s' % (blend, self.newGeoName), 1)
+        cmds.delete(self.newGeoName)
+        cmds.delete(self.selection, constructionHistory=True)
 
     def importBatchBShape(self, *args):
 
         self.importBatch()
 
         for geo in self.newGeoList:
-            blend = mc.blendShape(geo, geo[0:-1])[0]
-            mc.setAttr('%s.%s' % (blend, geo), 1)
-            mc.delete(geo)
-            mc.delete(geo[0:-1], constructionHistory=True)
+            blend = cmds.blendShape(geo, geo[0:-1])[0]
+            cmds.setAttr('%s.%s' % (blend, geo), 1)
+            cmds.delete(geo)
+            cmds.delete(geo[0:-1], constructionHistory=True)
 
     def exportBatch(self, *args):
 
         self.caption = "Batch OBJ export"
         self.fileMode = 3
         self.okCaption = "Export"
-        self.selection = mc.ls(selection=True)
+        self.selection = cmds.ls(selection=True)
 
         self.dialogPop()
 
         for geo in self.selection:
-            mc.select(geo)
-            mc.file('%s/%s.%s' % (self.filePath[0], geo[0:-4], 'obj'), force=True,
-                    options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1', type='OBJexport', es=True)
+            cmds.select(geo)
+            cmds.file('%s/%s.%s' % (self.filePath[0], geo[0:-4], 'obj'), force=True,
+                      options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1', type='OBJexport', es=True)
 
     def cleanup(self):
 
@@ -126,7 +126,7 @@ class ObjToolkit(object):
         # Creates list of a type of each node created on import
 
         for item in self.importedFile:
-            objType = mc.objectType(item)
+            objType = cmds.objectType(item)
             typeList.append(objType)
 
         # Combines selection and type list
@@ -143,17 +143,17 @@ class ObjToolkit(object):
 
         # Deletes all objects which remained in the dictionary
 
-        mc.delete(combineDict.keys())
+        cmds.delete(combineDict.keys())
 
         # Assigns initialShadingGroup to imported object
 
-        mc.sets(self.geoName, forceElement='initialShadingGroup')
-        mc.polySoftEdge(self.geoName, angle=30)
-        mc.delete(self.geoName, constructionHistory=True)
+        cmds.sets(self.geoName, forceElement='initialShadingGroup')
+        cmds.polySoftEdge(self.geoName, angle=30)
+        cmds.delete(self.geoName, constructionHistory=True)
 
     def rename(self):
 
-        self.newGeoName = mc.rename(self.geoName, '%s%s' % (self.fileName, self.suffix))
+        self.newGeoName = cmds.rename(self.geoName, '%s%s' % (self.fileName, self.suffix))
 
 
 class ObjToolkitUI(object):
@@ -162,30 +162,30 @@ class ObjToolkitUI(object):
     def __init__(self):
         self.toolkit = ObjToolkit()
 
-        if mc.window(self.windowName, query=True, exists=True):
-            mc.deleteUI(self.windowName)
+        if cmds.window(self.windowName, query=True, exists=True):
+            cmds.deleteUI(self.windowName)
 
-        mc.window(self.windowName, title="JJ Obj Toolkit")
+        cmds.window(self.windowName, title="JJ Obj Toolkit")
 
         self.buildUI()
 
     def buildUI(self):
-        columnMain = mc.columnLayout(rowSpacing=10)
+        columnMain = cmds.columnLayout(rowSpacing=10)
 
-        mc.frameLayout(label='Import', collapsable=False)
-        mc.columnLayout(rowSpacing=2)
+        cmds.frameLayout(label='Import', collapsable=False)
+        cmds.columnLayout(rowSpacing=2)
 
-        iSingleBtn = mc.button(label="Import Single OBJ", w=175, h=25, c=self.toolkit.importSingle)
-        iBatchBtn = mc.button(label="Import Batch OBJ", w=175, h=25, c=self.toolkit.importBatch)
-        iSingleBSBtn = mc.button(label="Import Single OBJ as bShape", w=175, h=25, c=self.toolkit.importSingleBShape)
-        iBatchBSBtn = mc.button(label="Import Batch OBJ as bShape", w=175, h=25, c=self.toolkit.importBatchBShape)
+        iSingleBtn = cmds.button(label="Import Single OBJ", w=175, h=25, c=self.toolkit.importSingle)
+        iBatchBtn = cmds.button(label="Import Batch OBJ", w=175, h=25, c=self.toolkit.importBatch)
+        iSingleBSBtn = cmds.button(label="Import Single OBJ as bShape", w=175, h=25, c=self.toolkit.importSingleBShape)
+        iBatchBSBtn = cmds.button(label="Import Batch OBJ as bShape", w=175, h=25, c=self.toolkit.importBatchBShape)
 
-        mc.setParent(columnMain)
+        cmds.setParent(columnMain)
 
-        mc.frameLayout(label='Export', collapsable=False)
-        mc.columnLayout(rowSpacing=2)
+        cmds.frameLayout(label='Export', collapsable=False)
+        cmds.columnLayout(rowSpacing=2)
 
-        eBatchBtn = mc.button(label="Export Batch OBJ", w=175, h=25, c=self.toolkit.exportBatch)
+        eBatchBtn = cmds.button(label="Export Batch OBJ", w=175, h=25, c=self.toolkit.exportBatch)
 
 
 class ObjToolkitUIQt(QtGui.QDialog):
@@ -228,7 +228,7 @@ def showUI(type="cmds"):
 
         # maya cmds UI
         ui = ObjToolkitUI()
-        mc.showWindow(ui.windowName)
+        cmds.showWindow(ui.windowName)
 
     elif type == "qt":
 
