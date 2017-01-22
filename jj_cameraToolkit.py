@@ -3,6 +3,7 @@ from PySide import QtCore, QtGui
 
 
 class ZoomPan(object):
+    """A set of methods for setting current camera Zoom and Pan"""
 
     def __init__(self):
 
@@ -27,6 +28,7 @@ class ZoomPan(object):
             self.horizPan = cmds.getAttr('%s.horizontalPan' % self.camera)
 
     def panelTest(self):
+        """Tests if the model panel is active and prevents script from crashing."""
 
         panelType = cmds.getPanel(typeOf=self.panelFocused)
 
@@ -34,9 +36,11 @@ class ZoomPan(object):
             raise RuntimeError
 
     def getCamera(self):
+        """Finds a current active camera."""
 
         self.camera = cmds.modelPanel(self.panelFocused, q=True, camera=True)
 
+        # Checks if the self.camera is really camera, transform is sometimes selected instead
         if cmds.objectType(self.camera) == 'camera':
 
             pass
@@ -45,42 +49,48 @@ class ZoomPan(object):
             self.camera = cmds.listRelatives(self.camera, children=True)[0]
 
     def zoomPlus(self, *args):
+        """Simple method iterating on Zoom Plus."""
 
         self.__init__()
         self.zoom -= 0.1
         cmds.setAttr(('%s.zoom' % self.camera), self.zoom)
 
     def zoomMinus(self, *args):
+        """Simple method iterating on Zoom Minus."""
 
         self.__init__()
         self.zoom += 0.1
         cmds.setAttr(('%s.zoom' % self.camera), self.zoom)
 
     def panUp(self, *args):
+        """Simple method iterating on Pan Up."""
 
         self.__init__()
         self.vertPan += 0.02
         cmds.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
 
     def panDown(self, *args):
+        """Simple method iterating on Pan Down."""
 
         self.__init__()
         self.vertPan -= 0.02
         cmds.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
 
     def panRight(self, *args):
+        """Simple method iterating on Pan Right."""
 
         self.horizPan += 0.02
         cmds.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
 
     def panLeft(self, *args):
+        """Simple method iterating on Pan Left."""
 
         self.__init__()
         self.horizPan -= 0.02
         cmds.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
 
     def zoomPanReset(self, *args):
-
+        """Resets Zoom and Pan and disables Zoom and Pan on the camera."""
         self.__init__()
         self.zoom = 1
         self.vertPan = 0
@@ -88,10 +98,13 @@ class ZoomPan(object):
         cmds.setAttr(('%s.zoom' % self.camera), self.zoom)
         cmds.setAttr(('%s.verticalPan' % self.camera), self.vertPan)
         cmds.setAttr(('%s.horizontalPan' % self.camera), self.horizPan)
+        cmds.setAttr(('%s.panZoomEnabled' % self.camera), 1)
         print ('%s was reset.' % self.camera)
 
 
 class CameraToolkitUI(object):
+    """Creates toolkit dialog using Maya UI."""
+
     windowName = "CameraToolkitUI"
 
     def __init__(self):
@@ -132,6 +145,7 @@ class CameraToolkitUI(object):
 
 
 class CameraToolkitUIQt(QtGui.QDialog):
+    """Creates toolkit dialog using PyQt."""
 
     def __init__(self):
         super(CameraToolkitUIQt, self).__init__()
@@ -193,6 +207,8 @@ class CameraToolkitUIQt(QtGui.QDialog):
 
 
 def showUI(type='cmds'):
+    """Function to open toolkit window. Maya UI or Qt can be chosen using parameter."""
+
     if type == "cmds":
 
         # maya cmds UI
