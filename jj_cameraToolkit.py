@@ -132,13 +132,23 @@ class CameraToolkitUI(object):
 
 
 class CameraToolkitUIQt(QtGui.QDialog):
+
     def __init__(self):
         super(CameraToolkitUIQt, self).__init__()
 
         self.setWindowTitle('JJ Camera Toolkit')
         self.toolkit = ZoomPan()
 
+        self.settings = QtCore.QSettings('JJ', 'jjCameraToolkit')
+        geometry = self.settings.value('geometry', '')
+        self.restoreGeometry(geometry)
+
         self.buildUI()
+
+    def closeEvent(self, event):
+        geometry = self.saveGeometry()
+        self.settings.setValue('geometry', geometry)
+        super(CameraToolkitUIQt, self).closeEvent(event)
 
     def buildUI(self):
         print self.toolkit
