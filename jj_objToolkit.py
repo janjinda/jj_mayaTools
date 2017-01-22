@@ -3,7 +3,6 @@ from PySide import QtCore, QtGui
 import os
 import re
 
-
 class ObjToolkit(object):
 
     def __init__(self):
@@ -192,7 +191,6 @@ class ObjToolkitUI(object):
 class ObjToolkitUIQt(QtGui.QDialog):
 
     def __init__(self):
-
         super(ObjToolkitUIQt, self).__init__()
 
         self.setWindowTitle('OBJ Toolkit')
@@ -231,7 +229,6 @@ class ObjToolkitUIQt(QtGui.QDialog):
         eBatchBtn = QtGui.QPushButton('Export Batch OBJ')
         eBatchBtn.clicked.connect(self.toolkit.exportBatch)
         layout.addWidget(eBatchBtn)
-
 
 def showUI(type="cmds"):
     if type == "cmds":
