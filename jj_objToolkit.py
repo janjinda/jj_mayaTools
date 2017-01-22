@@ -5,6 +5,7 @@ import re
 
 
 class ObjToolkit(object):
+
     def __init__(self):
 
         """ This is a class comment"""
@@ -197,7 +198,16 @@ class ObjToolkitUIQt(QtGui.QDialog):
         self.setWindowTitle('OBJ Toolkit')
         self.toolkit = ObjToolkit()
 
+        self.settings = QtCore.QSettings('JJ', 'jjObjToolkit')
+        geometry = self.settings.value('geometry', '')
+        self.restoreGeometry(geometry)
+
         self.buildUI()
+
+    def closeEvent(self, event):
+        geometry = self.saveGeometry()
+        self.settings.setValue('geometry', geometry)
+        super(ObjToolkitUIQt,self).closeEvent(event)
 
     def buildUI(self):
         layout = QtGui.QVBoxLayout(self)
