@@ -1,6 +1,6 @@
 from maya import cmds
 
-# defining dictionary of possible suffixes
+# Defining dictionary of possible suffixes
 SUFFIXES = {
     'mesh': 'geo',
     'joint': 'jnt',
@@ -12,7 +12,7 @@ SUFFIXES = {
 DEFAULT_SUFFIX = 'grp'
 
 
-def renameSimple(selection=False):
+def renameSimple(selection=True):
     """
     This function will rename any objects to have the correct suffix
     Args:
@@ -23,20 +23,20 @@ def renameSimple(selection=False):
 
     """
 
-    # stores an selected object to the selection variable
+    # Stores an selected object to the selection variable
     objects = cmds.ls(selection=selection, dag=True, long=True)
 
     if selection and not objects:
         raise RuntimeError("You don't have anything selected!")
 
-    # sorts selection based on lengh of object's name
+    # Sorts selection based on length of object's name
     objects.sort(key=len, reverse=True)
 
-    # for each obj in selection creates shortname based on objects name
+    # For each obj in selection creates shortname based on objects name
     for obj in objects:
         shortName = obj.split("|")[-1]
 
-        # diggs into the hierarchy and finds type of the object or child, if there's a hierarchy
+        # Digs into the hierarchy and finds type of the object or child, if there's a hierarchy
         children = cmds.listRelatives(obj, children=True, fullPath=True) or []
 
         if len(children) == 1:
@@ -45,18 +45,18 @@ def renameSimple(selection=False):
         else:
             objType = cmds.objectType(obj)
 
-        # assigning suffix from the dictionary to suffix variable
+        # Assigning suffix from the dictionary to suffix variable
         suffix = SUFFIXES.get(objType, DEFAULT_SUFFIX)
 
-        # skipping objects which should be without suffix (in the dictionary marked as none)
+        # Skipping objects which should be without suffix (in the dictionary marked as none)
         if not suffix:
             continue
 
-        # skipping objects which already has an suffix
+        # Skipping objects which already has an suffix
         if obj.endswith('_' + suffix):
             continue
 
-        # creating new name for the object and renaming it
+        # Creating new name for the object and renaming it
         newName = '%s_%s' % (shortName, suffix)
         cmds.rename(obj, newName)
 

@@ -4,10 +4,12 @@ import os
 import re
 
 class ObjToolkit(object):
+    """
+    JJ Obj Toolkit is a simple set of tools for easier manipulation with Obj files in Maya.
+
+    """
 
     def __init__(self):
-
-        """ This is a class comment"""
 
         self.newGeoList = []
         self.dirItems = []
@@ -24,14 +26,14 @@ class ObjToolkit(object):
 
     def dialogPop(self):
 
-        # Opens dialog based on functions settings
+        """Opens dialog based on methods requirements."""
 
         self.filePath = cmds.fileDialog2(fileMode=self.fileMode, caption=self.caption, dialogStyle=2,
                                          okCaption=self.okCaption, fileFilter="Waveform OBJ (*.obj *.OBJ)")
 
     def importSingle(self, *args):
 
-        # Defines single file import variables and runs dialogPop function
+        """"Imports a single Obj file and performs cleanup."""
 
         self.caption = "Single OBJ import"
         self.fileMode = 1  # 1 returns single file, 2 returns directory
@@ -56,8 +58,7 @@ class ObjToolkit(object):
         cmds.select(clear=True)
 
     def importBatch(self, *args):
-
-        # Defines directory import variables and runs dialogPop function
+        """Imports all Obj files in chosen directory and performs cleanup."""
 
         self.caption = "Batch OBJ import"
         self.fileMode = 2  # 1 returns single file, 2 returns directory
@@ -86,6 +87,7 @@ class ObjToolkit(object):
             cmds.select(clear=True)
 
     def importSingleBShape(self, *args):
+        """Imports a single Obj, applies it as a blend shape on previously selected geometry and performs cleanup."""
 
         self.selection = cmds.ls(selection=True)
 
@@ -96,6 +98,8 @@ class ObjToolkit(object):
         cmds.delete(self.selection, constructionHistory=True)
 
     def importBatchBShape(self, *args):
+        """Imports entire directory of Obj files, applies it them as a blend shape based on geometry names and
+        performs cleanup. """
 
         self.importBatch()
 
@@ -106,6 +110,7 @@ class ObjToolkit(object):
             cmds.delete(geo[0:-1], constructionHistory=True)
 
     def exportBatch(self, *args):
+        """Exports all selected geometries as a Obj files."""
 
         self.caption = "Batch OBJ export"
         self.fileMode = 3
@@ -120,6 +125,7 @@ class ObjToolkit(object):
                       options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1', type='OBJexport', es=True)
 
     def cleanup(self):
+        """Removes all unnecessary nodes which are created during imports."""
 
         typeList = []
 
@@ -152,11 +158,14 @@ class ObjToolkit(object):
         cmds.delete(self.geoName, constructionHistory=True)
 
     def rename(self):
+        """Renames all imported geometries based on filename plus _geo suffix."""
 
         self.newGeoName = cmds.rename(self.geoName, '%s%s' % (self.fileName, self.suffix))
 
 
 class ObjToolkitUI(object):
+    """Creates toolkit dialog using Maya UI."""
+
     windowName = "ObjToolkitUI"
 
     def __init__(self):
@@ -189,6 +198,7 @@ class ObjToolkitUI(object):
 
 
 class ObjToolkitUIQt(QtGui.QDialog):
+    """Creates toolkit dialog using PyQt."""
 
     def __init__(self):
         super(ObjToolkitUIQt, self).__init__()
@@ -230,7 +240,10 @@ class ObjToolkitUIQt(QtGui.QDialog):
         eBatchBtn.clicked.connect(self.toolkit.exportBatch)
         layout.addWidget(eBatchBtn)
 
+
 def showUI(type="cmds"):
+    """Function to open toolkit window. Maya UI or Qt can be chosen using parameter."""
+
     if type == "cmds":
 
         # maya cmds UI
