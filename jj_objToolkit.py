@@ -30,6 +30,7 @@ class ObjToolkit(object):
 
         self.filePath = cmds.fileDialog2(fileMode=self.fileMode, caption=self.caption, dialogStyle=2,
                                          okCaption=self.okCaption, fileFilter="Waveform OBJ (*.obj *.OBJ)")
+                        
 
     def importSingle(self, *args):
 
@@ -112,6 +113,19 @@ class ObjToolkit(object):
             cmds.delete(geo)
             cmds.delete(geo[0:-3], constructionHistory=True)
 
+    def exportSingle(self, *args):
+        """Exports selected geometry."""
+
+        self.caption = "Single OBJ export"
+        self.fileMode = 2
+        self.okCaption = "Export"
+        self.selection = cmds.ls(selection=True)
+
+        self.dialogPop()
+    
+        cmds.file('%s/%s.%s' % (self.filePath[0], self.selection[0], 'obj'), force=False,
+                  options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1', type='OBJexport', es=True)
+    
     def exportBatch(self, *args):
         """Exports all selected geometries as a Obj files."""
 
@@ -121,10 +135,10 @@ class ObjToolkit(object):
         self.selection = cmds.ls(selection=True)
 
         self.dialogPop()
-
+        
         for geo in self.selection:
             cmds.select(geo)
-            cmds.file('%s/%s.%s' % (self.filePath[0], geo[0:-4], 'obj'), force=True,
+            cmds.file('%s/%s.%s' % (self.filePath[0], geo, 'obj'), force=False,
                       options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1', type='OBJexport', es=True)
 
     def cleanup(self):
@@ -162,7 +176,6 @@ class ObjToolkit(object):
 
     def rename(self):
         """Renames all imported geometries based on filename plus _geo suffix."""
-        #self.newGeoName = cmds.rename(self.geoName, '%s' % (self.fileName))
         
         self.newGeoName = ("%s" % (self.fileName))
 
@@ -170,8 +183,6 @@ class ObjToolkit(object):
             self.newGeoName = cmds.rename(self.geoName, self.newGeoName)
         else:
             self.newGeoName = cmds.rename(self.geoName, ("%s_01" % (self.newGeoName)))
-
-        
 
 
 class ObjToolkitUI(object):
@@ -205,7 +216,9 @@ class ObjToolkitUI(object):
         cmds.frameLayout(label='Export', collapsable=False)
         cmds.columnLayout(rowSpacing=2)
 
+        eSingleBtn = cmds.button(label="Export Single OBJ", w=175, h=25, c=self.toolkit.exportSingle)
         eBatchBtn = cmds.button(label="Export Batch OBJ", w=175, h=25, c=self.toolkit.exportBatch)
+        
 
 
 class ObjToolkitUIQt(QtGui.QDialog):
@@ -247,7 +260,11 @@ class ObjToolkitUIQt(QtGui.QDialog):
         iBatchBSBtn.clicked.connect(self.toolkit.importBatchBShape)
         layout.addWidget(iBatchBSBtn)
 
-        eBatchBtn = QtGui.QPushButton('Export Batch OBJ')
+        eSingleBtn = QtGui.QPushButton('Export Batch OBJ')
+        eSingleBtn.clicked.connect(self.toolkit.exportSingle)
+        layout.addWidget(eSingleBtn)
+        
+        eBatchBtn = QtGui.QPushButton('Export Single OBJ')
         eBatchBtn.clicked.connect(self.toolkit.exportBatch)
         layout.addWidget(eBatchBtn)
 
