@@ -59,6 +59,8 @@ class ObjToolkit(object):
 
     def importBatch(self, *args):
         """Imports all Obj files in chosen directory and performs cleanup."""
+        
+        self.__init__()
 
         self.caption = "Batch OBJ import"
         self.fileMode = 2  # 1 returns single file, 2 returns directory
@@ -100,14 +102,15 @@ class ObjToolkit(object):
     def importBatchBShape(self, *args):
         """Imports entire directory of Obj files, applies it them as a blend shape based on geometry names and
         performs cleanup. """
-
+        
         self.importBatch()
-
+        
         for geo in self.newGeoList:
-            blend = cmds.blendShape(geo, geo[0:-1])[0]
+            print geo
+            blend = cmds.blendShape(geo, geo[0:-3])[0]
             cmds.setAttr('%s.%s' % (blend, geo), 1)
             cmds.delete(geo)
-            cmds.delete(geo[0:-1], constructionHistory=True)
+            cmds.delete(geo[0:-3], constructionHistory=True)
 
     def exportBatch(self, *args):
         """Exports all selected geometries as a Obj files."""
@@ -159,8 +162,16 @@ class ObjToolkit(object):
 
     def rename(self):
         """Renames all imported geometries based on filename plus _geo suffix."""
+        #self.newGeoName = cmds.rename(self.geoName, '%s' % (self.fileName))
+        
+        self.newGeoName = ("%s" % (self.fileName))
 
-        self.newGeoName = cmds.rename(self.geoName, '%s%s' % (self.fileName, self.suffix))
+        if not self.newGeoName in cmds.ls():
+            self.newGeoName = cmds.rename(self.geoName, self.newGeoName)
+        else:
+            self.newGeoName = cmds.rename(self.geoName, ("%s_01" % (self.newGeoName)))
+
+        
 
 
 class ObjToolkitUI(object):
