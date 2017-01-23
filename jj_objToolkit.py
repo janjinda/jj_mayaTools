@@ -122,8 +122,14 @@ class ObjToolkit(object):
         self.selection = cmds.ls(selection=True)
 
         self.dialogPop()
-    
-        cmds.file('%s/%s.%s' % (self.filePath[0], self.selection[0], 'obj'), force=False,
+
+        over = cmds.confirmDialog(title='Confirm', message='Do you want to force overwrite files?', button=['Yes', 'No'], defaultButton='Yes',
+                                       cancelButton='No', dismissString='No')
+
+        force = True if over == 'Yes' else False
+
+
+        cmds.file('%s/%s.%s' % (self.filePath[0], self.selection[0], 'obj'), force=force,
                   options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1', type='OBJexport', es=True)
     
     def exportBatch(self, *args):
