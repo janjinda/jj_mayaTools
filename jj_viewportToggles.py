@@ -31,10 +31,26 @@ class ViewportToggle(object):
             state = cmds.modelEditor(self.panelFocused, q=True, wireframeOnShaded=False)
             cmds.modelEditor(self.panelFocused, e=True, wireframeOnShaded=(not state))
 
-    def polygonView(self):
+    def hidePolygonView(self):
 
         """Toggles visibility of all polygonal objects in the current viewport"""
 
         if cmds.getPanel(typeOf=self.panelFocused) == 'modelPanel':
             state = cmds.modelEditor(self.panelFocused, query=True, polymeshes=True)
             cmds.modelEditor(self.panelFocused, e=True, polymeshes=(not state))
+
+    def isolatePolygonView(self):
+
+        """Toggles visibility of control objects to show just polygons in the current viewport"""
+
+        if cmds.getPanel(typeOf=self.panelFocused) == 'modelPanel':
+            stateNurbs = cmds.modelEditor(self.panelFocused, query=True, nurbsCurves=True)
+            stateLocators = cmds.modelEditor(self.panelFocused, query=True, locators=True)
+            stateHandles = cmds.modelEditor(self.panelFocused, query=True, handles=True)
+            stateJoints = cmds.modelEditor(self.panelFocused, query=True, joints=True)
+
+            cmds.modelEditor(self.panelFocused, e=True, nurbsCurves=(not stateNurbs))
+            cmds.modelEditor(self.panelFocused, e=True, locators=(not stateLocators))
+            cmds.modelEditor(self.panelFocused, e=True, handles=(not stateHandles))
+            cmds.modelEditor(self.panelFocused, e=True, joints=(not stateJoints))
+
