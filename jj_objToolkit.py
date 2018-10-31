@@ -2,16 +2,15 @@
 JJ Obj Toolkit is a simple set of tools for easier manipulation with Obj files in Maya.
 
 Author: Jan Jinda
-Email: jj@dneg.com
+Email: janjinda@janjinda.com
 Version: 1.0.0
 """
 
 # Usual imports
 import maya.cmds as cmds
-import pymel as pm
 import os
 import re
-#from PySide2 import QtWidgets, QtCore, QtGui
+
 
 class ObjToolkit(object):
 
@@ -26,18 +25,18 @@ class ObjToolkit(object):
         """Open dialog based on requirements."""
 
         self.dialogPath = cmds.fileDialog2(fileMode=self.fileMode, caption=self.caption, dialogStyle=2,
-                                         okCaption=self.okCaption, fileFilter="Waveform OBJ (*.obj *.OBJ)")[0]
+                                           okCaption=self.okCaption, fileFilter="Waveform OBJ (*.obj *.OBJ)")[0]
 
     def importObj(self, *args):
         """Main import function"""
         # Import command
         self.importedFile = cmds.file(self.filePath, i=True, type="OBJ", ignoreVersion=True, renameAll=True,
                                       mergeNamespacesOnClash=False, options="mo=0", pr=True, returnNewNodes=True)
-        
+
         # Get file name create temp geo name
         fileName = re.sub('[^0-9a-zA-Z]', '_', (self.filePath.split('/')[-1])[0:-4])
-        geoName =  fileName + "_polySurface1"
-        
+        geoName = fileName + "_polySurface1"
+
         # Create list of a type of each node created on import
         typeList = []
         for item in self.importedFile:
@@ -61,18 +60,18 @@ class ObjToolkit(object):
         cmds.sets(geoName, forceElement='initialShadingGroup')
         cmds.polySoftEdge(geoName, angle=30)
         cmds.delete(geoName, constructionHistory=True)
-        
+
         # Rename all imported geometries based on filename
-        self.newGeoName = ("%s" % (fileName))
+        self.newGeoName = ("%s" % fileName)
 
         if not self.newGeoName in cmds.ls():
             self.newGeoName = cmds.rename(geoName, self.newGeoName)
         else:
-            self.newGeoName = cmds.rename(geoName, ("%s_01" % (self.newGeoName)))
-        
+            self.newGeoName = cmds.rename(geoName, ("%s_01" % self.newGeoName))
+
         # Add new geo to the list
         self.newGeoList.append(self.newGeoName)
-        
+
     def exportObj(self, *args):
         """Main export function."""
         # Export command
@@ -85,16 +84,16 @@ class ObjToolkit(object):
         self.caption = "Single OBJ import"
         self.fileMode = 1  # 1 returns single file, 2 returns directory
         self.okCaption = "Import"
-        
+
         # Open dialog and store filepath for usage in import function
         self.dialogOpen()
         self.filePath = self.dialogPath
-        
+
         # Run main import function
         self.newGeoList = []
         self.importObj()
         cmds.select(clear=True)
-        
+
         cmds.select(self.newGeoList)
 
     def importBatch(self, *args):
@@ -103,19 +102,19 @@ class ObjToolkit(object):
         self.caption = "Batch OBJ import"
         self.fileMode = 2  # 1 returns single file, 2 returns directory
         self.okCaption = "Import"
-        
+
         # Open dialog and store filepath for usage in import function
         self.dialogOpen()
         # List files in the folder obtained from dialog
         self.dirItems = [each for each in os.listdir(self.dialogPath) if
-                          each.endswith('.obj') or each.endswith('.OBJ')]
-        
+                         each.endswith('.obj') or each.endswith('.OBJ')]
+
         # Run the import function for every file in the folder
         self.newGeoList = []
         for item in self.dirItems:
             self.filePath = os.path.join(self.dialogPath, item)
             self.importObj()
-            
+
         cmds.select(self.newGeoList)
 
     def importSingleBShape(self, *args):
@@ -136,7 +135,7 @@ class ObjToolkit(object):
         """Imports entire directory of Obj files, applies it them as a blend shape based on geometry names."""
         # Perform batch import function
         self.importBatch()
-        
+
         for geo in self.newGeoList:
             # Find equivalent geo in the scene for every imported geo and blend 
             blend = cmds.blendShape(geo, geo[0:-3])[0]
@@ -150,22 +149,22 @@ class ObjToolkit(object):
         self.caption = "Single OBJ export"
         self.fileMode = 2
         self.okCaption = "Export"
-        
+
         self.dialogOpen()
-        
+
         # Filter non geo objects from selection
         sel = cmds.ls(selection=True, long=False)
         self.validGeos = []
         for geo in sel:
             if cmds.objectType(cmds.listRelatives(geo, shapes=True)[0]) == 'mesh':
                 self.validGeos.append(geo)
-        
+
         cmds.select(self.validGeos)
         self.fileName = self.validGeos[0]
-        
+
         # Run main export function
         self.exportObj()
-                     
+
     def exportBatch(self, *args):
         """Exports all selected geometries as a Obj files."""
         # Set dialog properties
@@ -175,20 +174,21 @@ class ObjToolkit(object):
         sel = cmds.ls(selection=True, long=False)
 
         self.dialogOpen()
-        
+
         # Filter non geo objects from selection
         self.validGeos = []
         for geo in sel:
             if cmds.objectType(cmds.listRelatives(geo, shapes=True)[0]) == 'mesh':
                 self.validGeos.append(geo)
-        
+
         # Run main export function
         for geo in self.validGeos:
             cmds.select(geo)
             self.fileName = geo
             self.exportObj()
-        
+
         cmds.select(self.validGeos)
+
 
 class ObjToolkitUI(object):
     """Creates toolkit dialog using Maya UI."""
