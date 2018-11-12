@@ -3,12 +3,14 @@ JJ Obj Toolkit is a simple set of tools for easier manipulation with Obj files i
 
 Author: Jan Jinda
 Email: janjinda@janjinda.com
-Version: 1.0.0
+Version: 0.0.8
 """
 
 # Usual imports
 import maya.cmds as cmds
 import re
+
+version = "0.9.5"
 
 
 def dialog(fileMode, diaCaption, okCaption):
@@ -114,7 +116,7 @@ def importSingle(*args):
         newGeos = [importObj(dialogPath[0])]
         cmds.select(clear=True)
 
-    print "%s OBJs were imported." % len(newGeos),
+        print "%s OBJs were imported." % len(newGeos),
 
     return newGeos
 
@@ -130,7 +132,7 @@ def importBatch(*args):
             newGeos.append(newGeo)
         cmds.select(clear=True)
 
-    print "%s OBJs were imported." % len(newGeos),
+        print "%s OBJs were imported." % len(newGeos),
 
     return newGeos
 
@@ -143,15 +145,17 @@ def importSingleBS(*args):
 
     if len(origGeos) == 1:
         newGeos = importSingle()
-        source = newGeos[0]
-        target = origGeos[0]
 
-        if cmds.polyEvaluate(source, v=True) == cmds.polyEvaluate(target, v=True):
-            blendSList = [bSCreate(source=source, target=target)]
-            bSControlLoc = bSControlCreate(blendSList=blendSList, origGeoList=origGeos[0])[0]
-            cmds.select(bSControlLoc)
+        if newGeos:
+            source = newGeos[0]
+            target = origGeos[0]
 
-    print "%s OBJs were imported. %s OBJs were blend shaped." % (len(newGeos), len(blendSList)),
+            if cmds.polyEvaluate(source, v=True) == cmds.polyEvaluate(target, v=True):
+                blendSList = [bSCreate(source=source, target=target)]
+                bSControlLoc = bSControlCreate(blendSList=blendSList, origGeoList=origGeos[0])[0]
+                cmds.select(bSControlLoc)
+
+            print "%s OBJs were imported. %s OBJs were blend shaped." % (len(newGeos), len(blendSList)),
 
     return newGeos, blendSList, bSControlLoc
 
@@ -163,59 +167,64 @@ def importBatchBS(*args):
     blendSList = []
     bSControlLoc = None
 
-    for i in newGeos:
-        origGeo = i.replace('_obj', '')
-        if origGeo in sceneGeos:
-            validGeos.append(origGeo)
-            blendS = bSCreate(source=i, target=origGeo)
-            blendSList.append(blendS)
+    if newGeos:
+        for i in newGeos:
+            origGeo = i.replace('_obj', '')
+            if origGeo in sceneGeos:
+                validGeos.append(origGeo)
+                blendS = bSCreate(source=i, target=origGeo)
+                blendSList.append(blendS)
 
-    if blendSList:
-        bSControlLoc = bSControlCreate(blendSList=blendSList, origGeoList=validGeos)[0]
+        if blendSList:
+            bSControlLoc = bSControlCreate(blendSList=blendSList, origGeoList=validGeos)[0]
 
-    if bSControlLoc:
-        print "%s OBJs imported. %s OBJs blend shaped. bs_ctrl created." % (len(newGeos), len(blendSList)),
-    else:
-        print "%s OBJs imported. %s OBJs blend shaped. History deleted." % (len(newGeos), len(blendSList)),
+        if bSControlLoc:
+            print "%s OBJs imported. %s OBJs blend shaped. bs_ctrl created." % (len(newGeos), len(blendSList)),
+        else:
+            print "%s OBJs imported. %s OBJs blend shaped. History deleted." % (len(newGeos), len(blendSList)),
 
     return newGeos, blendSList, bSControlLoc
 
 
 def exportSingle(*args):
     selection = cmds.ls(selection=True)
-    dialogPath = dialog(fileMode=2, diaCaption="Single OBJ Export", okCaption="Export")[0]
+    dialogPath = dialog(fileMode=2, diaCaption="Single OBJ Export", okCaption="Export")
     validGeos = []
 
     if dialogPath:
         for i in selection:
-            if cmds.objectType(cmds.listRelatives(i, shapes=True)[0]) == 'mesh':
-                validGeos.append(i)
+            allMeshes = cmds.listRelatives(cmds.listRelatives(i, allDescendents=True, type='mesh'), parent=True)
+
+            for ii in allMeshes:
+                validGeos.append(ii)
 
         fileName = validGeos[0]
-        exportObj(dialogPath=dialogPath, fileName=fileName)
-
-        print ('%s OBJ exported.' % len(validGeos)),
+        exportObj(dialogPath=dialogPath[0], fileName=fileName)
+        print ('%s geometries exported to OBJ.' % len(validGeos)),
 
     return validGeos
 
 
 def exportBatch(*args):
     selection = cmds.ls(selection=True)
-    dialogPath = dialog(fileMode=2, diaCaption="Batch OBJ Export", okCaption="Export")[0]
-
+    dialogPath = dialog(fileMode=2, diaCaption="Batch OBJ Export", okCaption="Export")
     validGeos = []
-    for i in selection:
-        if cmds.objectType(cmds.listRelatives(i, shapes=True)[0]) == 'mesh':
-            validGeos.append(i)
 
-    for i in validGeos:
-        cmds.select(i)
-        fileName = i
-        exportObj(dialogPath=dialogPath, fileName=fileName)
+    if dialogPath:
+        for i in selection:
+            allMeshes = cmds.listRelatives(cmds.listRelatives(i, allDescendents=True, type='mesh'), parent=True)
 
-    cmds.select(validGeos)
+            for ii in allMeshes:
+                validGeos.append(ii)
 
-    print ('%s OBJ exported.' % len(validGeos)),
+        for i in validGeos:
+            cmds.select(i)
+            fileName = i
+            exportObj(dialogPath=dialogPath[0], fileName=fileName)
+
+        cmds.select(validGeos)
+
+        print ('%s OBJ exported.' % len(validGeos)),
 
     return validGeos
 
@@ -226,31 +235,33 @@ def buildUI():
     cmds.frameLayout(label='Import', collapsable=False)
     cmds.columnLayout(rowSpacing=2)
 
-    cmds.button(label="Import Single OBJ", w=175, h=25, c=importSingle)
-    cmds.button(label="Import Batch OBJ", w=175, h=25, c=importBatch)
-    cmds.button(label="Import Single OBJ as bShape", w=175, h=25, c=importSingleBS)
-    cmds.button(label="Import Batch OBJ as bShape", w=175, h=25, c=importBatchBS)
+    cmds.button(label="Import Single OBJ", w=180, h=25, c=importSingle)
+    cmds.button(label="Import Batch OBJ", w=180, h=25, c=importBatch)
+    cmds.button(label="Import Single OBJ as bShape", w=180, h=25, c=importSingleBS)
+    cmds.button(label="Import Batch OBJ as bShape", w=180, h=25, c=importBatchBS)
 
     cmds.setParent(columnMain)
 
-    cmds.frameLayout(label='Import Options', labelWidth=175, collapsable=False)
+    cmds.frameLayout(label='Import Options', collapsable=False)
     cmds.columnLayout(rowSpacing=2)
 
-    cmds.checkBox('deleteCHCheckbox', label='Delete History')
+    cmds.checkBox('deleteCHCheckbox', label='Delete History', width=180)
 
     cmds.setParent(columnMain)
 
     cmds.frameLayout(label='Export', collapsable=False)
     cmds.columnLayout(rowSpacing=2)
 
-    cmds.button(label="Export Single OBJ", w=175, h=25, c=exportSingle)
-    cmds.button(label="Export Batch OBJ", w=175, h=25, c=exportBatch)
+    cmds.button(label="Export Single OBJ", w=180, h=25, c=exportSingle)
+    cmds.button(label="Export Batch OBJ", w=180, h=25, c=exportBatch)
 
     cmds.setParent(columnMain)
 
-    cmds.columnLayout(rowSpacing=2)
-    cmds.text(label='Jan Jinda')
-    cmds.text(label='<a href="http://janjinda.com">website</a>', hyperlink=True)
+    cmds.rowColumnLayout(numberOfColumns=2, columnWidth=[(1, 90), (2, 90)])
+    cmds.text(label='Jan Jinda', align='left')
+    cmds.text(label='')
+    cmds.text(label='<a href="http://janjinda.com">janjinda.com</a>', hyperlink=True, align='left')
+    cmds.text(label=('v%s' % version), align='right')
 
 
 def showUI():
