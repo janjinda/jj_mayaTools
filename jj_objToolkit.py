@@ -58,7 +58,7 @@ def importObj(dialogPath):
     if newGeo not in cmds.ls():
         newGeo = cmds.rename(tempGeoName, newGeo)
     else:
-        newGeo = cmds.rename(tempGeoName, ("%s_01" % newGeo))
+        newGeo = cmds.rename(tempGeoName, ("%s_obj" % newGeo))
 
     return newGeo
 
@@ -68,31 +68,8 @@ def exportObj(dialogPath, fileName):
     # Export command
     cmds.file('%s/%s.%s' % (dialogPath, fileName, 'obj'), force=False,
               options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1', type='OBJexport', es=True)
+
     return fileName
-
-
-# noinspection PyUnusedLocal
-def importSingle(*args):
-    """Imports all Obj files."""
-    dialogPath = dialog(fileMode=1, diaCaption="Single OBJ Import", okCaption="Import")
-    newGeo = importObj(dialogPath[0])
-    cmds.select(clear=True)
-    print newGeo
-    return newGeo
-
-
-# noinspection PyUnusedLocal
-def importBatch(*args):
-    """Import selected Obj files"""
-    dialogPath = dialog(fileMode=4, diaCaption="Batch OBJ Import", okCaption="Import")
-
-    newGeoList = []
-    for i in dialogPath:
-        newGeo = importObj(i)
-        newGeoList.append(newGeo)
-
-    cmds.select(clear=True)
-    return newGeoList
 
 
 def bSCreate(source, target):
@@ -103,72 +80,144 @@ def bSCreate(source, target):
     return blendS
 
 
-# noinspection PyUnusedLocal
+def bSControlCreate(blendSList, origGeoList, *args):
+    bSControlLoc = None
+    bsControlAttr = None
+
+    if not testCheckboxes():
+
+        bSControlLoc = cmds.spaceLocator(n="bs_ctrl")[0]
+
+        availableAttrs = cmds.listAttr(bSControlLoc, keyable=True)
+
+        for i in availableAttrs:
+            cmds.setAttr('%s.%s' % (bSControlLoc, i), lock=True, keyable=False)
+
+        bsControlAttr = cmds.addAttr(bSControlLoc, shortName='bsAmount', longName='Blend_Shapes_Amount',
+                                     defaultValue=1.0,
+                                     minValue=0, maxValue=1, keyable=True)
+        for i in blendSList:
+            cmds.connectAttr('%s.bsAmount' % bSControlLoc, '%s.envelope' % i)
+
+    else:
+        cmds.delete(origGeoList, ch=True)
+
+    return bSControlLoc, bsControlAttr
+
+
+def importSingle(*args):
+    """Imports all Obj files."""
+    newGeos = []
+    dialogPath = dialog(fileMode=1, diaCaption="Single OBJ Import", okCaption="Import")
+
+    if dialogPath:
+        newGeos = [importObj(dialogPath[0])]
+        cmds.select(clear=True)
+
+    print "%s OBJs were imported." % len(newGeos),
+
+    return newGeos
+
+
+def importBatch(*args):
+    """Import selected Obj files"""
+    newGeos = []
+    dialogPath = dialog(fileMode=4, diaCaption="Batch OBJ Import", okCaption="Import")
+
+    if dialogPath:
+        for i in dialogPath:
+            newGeo = importObj(i)
+            newGeos.append(newGeo)
+        cmds.select(clear=True)
+
+    print "%s OBJs were imported." % len(newGeos),
+
+    return newGeos
+
+
 def importSingleBS(*args):
-    origGeoList = cmds.ls(selection=True)
+    newGeos = []
+    origGeos = cmds.ls(selection=True)
     blendSList = []
+    bSControlLoc = None
 
-    if len(origGeoList) == 1:
-        newGeo = importSingle()
-        blendSList = [bSCreate(source=newGeo, target=origGeoList[0])]
-        cmds.select(origGeoList)
+    if len(origGeos) == 1:
+        newGeos = importSingle()
+        source = newGeos[0]
+        target = origGeos[0]
 
-    bSControlCreate(blendSList=blendSList, origGeoList=origGeoList)
+        if cmds.polyEvaluate(source, v=True) == cmds.polyEvaluate(target, v=True):
+            blendSList = [bSCreate(source=source, target=target)]
+            bSControlLoc = bSControlCreate(blendSList=blendSList, origGeoList=origGeos[0])[0]
+            cmds.select(bSControlLoc)
 
-    return origGeoList, blendSList
+    print "%s OBJs were imported. %s OBJs were blend shaped." % (len(newGeos), len(blendSList)),
+
+    return newGeos, blendSList, bSControlLoc
 
 
-# noinspection PyUnusedLocal
 def importBatchBS(*args):
-    newGeoList = importBatch()
-    origGeoList = []
+    sceneGeos = cmds.listRelatives(cmds.ls(type='mesh'), parent=True)
+    validGeos = []
+    newGeos = importBatch()
     blendSList = []
+    bSControlLoc = None
 
-    for i in newGeoList:
-        origGeoList.append(i[:-3])
-        blendS = bSCreate(source=i, target=i[:-3])
-        blendSList.append(blendS)
+    for i in newGeos:
+        origGeo = i.replace('_obj', '')
+        if origGeo in sceneGeos:
+            validGeos.append(origGeo)
+            blendS = bSCreate(source=i, target=origGeo)
+            blendSList.append(blendS)
 
-    bSControlCreate(blendSList=blendSList, origGeoList=origGeoList)
+    if blendSList:
+        bSControlLoc = bSControlCreate(blendSList=blendSList, origGeoList=validGeos)[0]
 
-    return origGeoList, blendSList
+    if bSControlLoc:
+        print "%s OBJs imported. %s OBJs blend shaped. bs_ctrl created." % (len(newGeos), len(blendSList)),
+    else:
+        print "%s OBJs imported. %s OBJs blend shaped. History deleted." % (len(newGeos), len(blendSList)),
+
+    return newGeos, blendSList, bSControlLoc
 
 
-# noinspection PyUnusedLocal
 def exportSingle(*args):
-    dialogPath = dialog(fileMode=2, diaCaption="Single OBJ Export", okCaption="Export")
-
     selection = cmds.ls(selection=True)
-    validGeo = []
+    dialogPath = dialog(fileMode=2, diaCaption="Single OBJ Export", okCaption="Export")[0]
+    validGeos = []
 
-    for i in selection:
-        if cmds.objectType(cmds.listRelatives(i, shapes=True)[0]) == 'mesh':
-            validGeo.append(i)
+    if dialogPath:
+        for i in selection:
+            if cmds.objectType(cmds.listRelatives(i, shapes=True)[0]) == 'mesh':
+                validGeos.append(i)
 
-    fileName = validGeo[0]
-    exportObj(dialogPath=dialogPath, fileName=fileName)
+        fileName = validGeos[0]
+        exportObj(dialogPath=dialogPath, fileName=fileName)
 
-    return fileName
+        print ('%s OBJ exported.' % len(validGeos)),
+
+    return validGeos
 
 
-# noinspection PyUnusedLocal
 def exportBatch(*args):
     selection = cmds.ls(selection=True)
-    dialogPath = dialog(fileMode=2, diaCaption="Batch OBJ Export", okCaption="Export")
+    dialogPath = dialog(fileMode=2, diaCaption="Batch OBJ Export", okCaption="Export")[0]
 
-    validGeo = []
+    validGeos = []
     for i in selection:
         if cmds.objectType(cmds.listRelatives(i, shapes=True)[0]) == 'mesh':
-            validGeo.append(i)
+            validGeos.append(i)
 
-    for i in validGeo:
+    for i in validGeos:
         cmds.select(i)
         fileName = i
         exportObj(dialogPath=dialogPath, fileName=fileName)
 
-    cmds.select(validGeo)
+    cmds.select(validGeos)
 
-    return validGeo
+    print ('%s OBJ exported.' % len(validGeos)),
+
+    return validGeos
 
 
 def buildUI():
@@ -197,6 +246,12 @@ def buildUI():
     cmds.button(label="Export Single OBJ", w=175, h=25, c=exportSingle)
     cmds.button(label="Export Batch OBJ", w=175, h=25, c=exportBatch)
 
+    cmds.setParent(columnMain)
+
+    cmds.columnLayout(rowSpacing=2)
+    cmds.text(label='Jan Jinda')
+    cmds.text(label='<a href="http://janjinda.com">website</a>', hyperlink=True)
+
 
 def showUI():
     windowName = "ObjToolkitUI"
@@ -207,33 +262,9 @@ def showUI():
     cmds.window(windowName, title="JJ OBJ Toolkit")
 
     buildUI()
-
     cmds.showWindow(windowName)
 
-
-# noinspection PyUnusedLocal
-def bSControlCreate(blendSList, origGeoList, *args):
-    bSControlLoc = None
-    bsControlAttr = None
-
-    if not testCheckboxes():
-
-        bSControlLoc = cmds.spaceLocator(n="bs_ctrl")[0]
-
-        availableAttrs = cmds.listAttr(bSControlLoc, keyable=True)
-
-        for i in availableAttrs:
-            cmds.setAttr('%s.%s' % (bSControlLoc, i), lock=True, keyable=False)
-
-        bsControlAttr = cmds.addAttr(bSControlLoc, shortName='bsAmount', longName='Blend_Shapes_Amount', defaultValue=1.0,
-                                     minValue=0, maxValue=1, keyable=True)
-        for i in blendSList:
-            cmds.connectAttr('%s.bsAmount' % bSControlLoc, '%s.envelope' % i)
-
-    else:
-        cmds.delete(origGeoList, ch=True)
-
-    return bSControlLoc, bsControlAttr
+    return windowName
 
 
 def testCheckboxes():
