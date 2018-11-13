@@ -88,7 +88,7 @@ def bSControlCreate(blendSList, origGeoList, *args):
 
     if not testCheckboxes():
 
-        bSControlLoc = cmds.spaceLocator(n="bs_ctrl")[0]
+        bSControlLoc = cmds.spaceLocator(n="bShape_ctrl")[0]
 
         availableAttrs = cmds.listAttr(bSControlLoc, keyable=True)
 
@@ -230,34 +230,38 @@ def exportBatch(*args):
 
 
 def buildUI():
+
+    mainColor = [0.0438, 0.4032, 0.553]
+    width = 150
+
     columnMain = cmds.columnLayout(rowSpacing=10)
 
-    cmds.frameLayout(label='Import', collapsable=False)
+    cmds.frameLayout(label='Import OBJ', backgroundColor=mainColor, collapsable=False)
     cmds.columnLayout(rowSpacing=2)
 
-    cmds.button(label="Import Single OBJ", w=180, h=25, c=importSingle)
-    cmds.button(label="Import Batch OBJ", w=180, h=25, c=importBatch)
-    cmds.button(label="Import Single OBJ as bShape", w=180, h=25, c=importSingleBS)
-    cmds.button(label="Import Batch OBJ as bShape", w=180, h=25, c=importBatchBS)
+    cmds.button(label="Import Single", w=width, h=25, c=importSingle)
+    cmds.button(label="Import Batch", w=width, h=25, c=importBatch)
+    cmds.button(label="Import Single as bShape", w=width, h=25, c=importSingleBS)
+    cmds.button(label="Import Batch as bShape", w=width, h=25, c=importBatchBS)
 
     cmds.setParent(columnMain)
 
     cmds.frameLayout(label='Import Options', collapsable=False)
     cmds.columnLayout(rowSpacing=2)
 
-    cmds.checkBox('deleteCHCheckbox', label='Delete History', width=180)
+    cmds.checkBox('deleteCHCheckbox', label='Delete History', width=width)
 
     cmds.setParent(columnMain)
 
-    cmds.frameLayout(label='Export', collapsable=False)
+    cmds.frameLayout(label='Export OBJ', backgroundColor=mainColor, collapsable=False)
     cmds.columnLayout(rowSpacing=2)
 
-    cmds.button(label="Export Single OBJ", w=180, h=25, c=exportSingle)
-    cmds.button(label="Export Batch OBJ", w=180, h=25, c=exportBatch)
+    cmds.button(label="Export Single", w=width, h=25, c=exportSingle)
+    cmds.button(label="Export Batch", w=width, h=25, c=exportBatch)
 
     cmds.setParent(columnMain)
 
-    cmds.rowColumnLayout(numberOfColumns=2, columnWidth=[(1, 90), (2, 90)])
+    cmds.rowColumnLayout(numberOfColumns=2, columnWidth=[(1, (width/2)), (2, (width/2))])
     cmds.text(label='Jan Jinda', align='left')
     cmds.text(label='')
     cmds.text(label='<a href="http://janjinda.com">janjinda.com</a>', hyperlink=True, align='left')
