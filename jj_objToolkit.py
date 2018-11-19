@@ -1,29 +1,55 @@
-"""
-JJ Obj Toolkit is a simple set of tools for easier manipulation with Obj files in Maya.
+# JJ Obj Toolkit is a simple set of tools for easier manipulation with Obj files in Maya.
 
-Author: Jan Jinda
-Email: janjinda@janjinda.com
-Version: 0.0.8
-"""
+__author__ = "Jan Jinda"
+__version__ = "0.9.6"
+__email__ = "janjinda@janjinda.com"
+__website__ = "http://janjinda.com"
 
-# Usual imports
 import maya.cmds as cmds
 import re
 
-version = "0.9.5"
 
+def dialog(dupCheck, diaCaption, fileMode, okCaption):
+    """Opens an file dialog set up based on given parameters
 
-def dialog(fileMode, diaCaption, okCaption):
-    """Open dialog based on requirements."""
+    Parameters:
+        dupCheck (boll):
+        diaCaption (str): dialog window caption
+        fileMode (int): defines dialog behaviour
+                        0 Any file, whether it exists or not
+                        1 A single existing file
+                        2 The name of a directory. Both directories and files are displayed in the dialog
+                        3 The name of a directory. Only directories are displayed in the dialog
+                        4 Then names of one or more existing files
+        okCaption (str): caption of the OK button
 
-    dialogPath = cmds.fileDialog2(fileMode=fileMode, caption=diaCaption, okCaption=okCaption,
+    Returns:
+        dialogPath (list): output selection from a dialog
+    """
+
+    # If there are meshes with the same name give warning
+    if dupCheck and duplicateCheck():
+        dialogPath = None
+        cmds.warning("There are multiple geometries with the same name. This should be fixed first."),
+
+    else:
+        # Store dialog output to a variable
+        dialogPath = cmds.fileDialog2(fileMode=fileMode, caption=diaCaption, okCaption=okCaption,
                                   dialogStyle=2, fileFilter="Waveform OBJ (*.obj *.OBJ)")
 
     return dialogPath
 
 
 def importObj(dialogPath):
-    """Main import function"""
+    """Main import function, removes all unnecessary nodes
+
+    Parameters:
+        dialogPath (list): input files from dialog
+
+    Returns:
+        newGeo (str): newly imported geometry
+    """
+
     # Import command
     selectedFiles = cmds.file(dialogPath, i=True, type="OBJ", ignoreVersion=True, renameAll=True,
                               mergeNamespacesOnClash=False, options="mo=0, lo=0", pr=True, returnNewNodes=True)
@@ -66,15 +92,48 @@ def importObj(dialogPath):
 
 
 def exportObj(dialogPath, fileName):
-    """Main export function."""
-    # Export command
+    """Main export function
+
+    Parameters:
+        dialogPath (list): directory input from dialog
+        fileName (str): file name inherited from geometry name
+
+    Returns:
+        fileName (str): file name inherited from geometry name
+    """
+
+    # File write command
     cmds.file('%s/%s.%s' % (dialogPath, fileName, 'obj'), force=False,
               options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1', type='OBJexport', es=True)
 
     return fileName
 
 
+def duplicateCheck():
+    """Main export function
+
+     Returns:
+         dupExists (bool): result of the check
+     """
+
+    # Check if there is duplicate mesh based on mayas long name
+    sceneMeshes = cmds.ls(type='mesh')
+    dupExists = any('|' in i for i in sceneMeshes)
+
+    return dupExists
+
+
 def bSCreate(source, target):
+    """Creates blend shape deformer
+
+        Parameters:
+            source (list): blend shape source geometry
+            target (str): blend shape target geometry
+
+        Returns:
+            blendS (str): name of a created blend shape deformer
+    """
+
     blendS = cmds.blendShape(source, target)[0]
     cmds.setAttr('%s.%s' % (blendS, source), 1)
     cmds.delete(source)
@@ -83,6 +142,17 @@ def bSCreate(source, target):
 
 
 def bSControlCreate(blendSList, origGeoList, *args):
+    """Creates locator with an attribute for controlling all created blend shapes
+
+        Parameters:
+            blendSList (list): list of all created blend shapes
+            origGeoList (list): list of all geometries which were blend shaped
+
+        Returns:
+            bSControlLoc (str): name of a created locator
+            bsControlAttr (str): name of a created custom attribute
+    """
+
     bSControlLoc = None
     bsControlAttr = None
 
@@ -108,9 +178,14 @@ def bSControlCreate(blendSList, origGeoList, *args):
 
 
 def importSingle(*args):
-    """Imports all Obj files."""
+    """Available for a user for importing single OBJ
+
+        Returns:
+            newGeos (list): list of all new imported geometries
+    """
+
     newGeos = []
-    dialogPath = dialog(fileMode=1, diaCaption="Single OBJ Import", okCaption="Import")
+    dialogPath = dialog(dupCheck=False, fileMode=1, diaCaption="Single OBJ Import", okCaption="Import")
 
     if dialogPath:
         newGeos = [importObj(dialogPath[0])]
@@ -122,9 +197,14 @@ def importSingle(*args):
 
 
 def importBatch(*args):
-    """Import selected Obj files"""
+    """Available for a user for importing multiple OBJ
+
+        Returns:
+            newGeos (list): list of all new imported geometries
+    """
+
     newGeos = []
-    dialogPath = dialog(fileMode=4, diaCaption="Batch OBJ Import", okCaption="Import")
+    dialogPath = dialog(dupCheck=False, fileMode=4, diaCaption="Batch OBJ Import", okCaption="Import")
 
     if dialogPath:
         for i in dialogPath:
@@ -138,6 +218,14 @@ def importBatch(*args):
 
 
 def importSingleBS(*args):
+    """Available for a user for importing single OBJ as a blend shape to an existing geometry
+
+        Returns:
+            newGeos (list): list of all new imported geometries
+            blendSList (list): list of all created blend shapes
+            bSControlLoc(str): name of a created blend shapes controller
+    """
+
     newGeos = []
     origGeos = cmds.ls(selection=True)
     blendSList = []
@@ -161,6 +249,14 @@ def importSingleBS(*args):
 
 
 def importBatchBS(*args):
+    """Available for a user for importing multiple OBJ as a blend shape to an existing corresponding geometries
+
+        Returns:
+            newGeos (list): list of all new imported geometries
+            blendSList (list): list of all created blend shapes
+            bSControlLoc(str): name of a created blend shapes controller
+    """
+
     sceneGeos = cmds.listRelatives(cmds.ls(type='mesh'), parent=True)
     validGeos = []
     newGeos = importBatch()
@@ -187,55 +283,78 @@ def importBatchBS(*args):
 
 
 def exportSingle(*args):
+    """Available for a user for exporting selected geometries or all geometries in a hierarchy to a single OBJ
+
+        Returns:
+            validGeos (list): list of all geometries which are valid for export
+    """
     selection = cmds.ls(selection=True)
-    dialogPath = dialog(fileMode=2, diaCaption="Single OBJ Export", okCaption="Export")
     validGeos = []
 
-    if dialogPath:
-        for i in selection:
-            allMeshes = cmds.listRelatives(cmds.listRelatives(i, allDescendents=True, type='mesh'), parent=True)
+    if len(selection) != 0:
+        dialogPath = dialog(dupCheck=False, fileMode=2, diaCaption="Single OBJ Export", okCaption="Export")
 
-            for ii in allMeshes:
-                validGeos.append(ii)
+        if dialogPath:
+            for i in selection:
+                allMeshes = cmds.listRelatives(cmds.listRelatives(i, allDescendents=True, type='mesh', path=True), parent=True)
 
-        fileName = validGeos[0]
-        exportObj(dialogPath=dialogPath[0], fileName=fileName)
-        print ('%s geometries exported to OBJ.' % len(validGeos)),
+                for ii in allMeshes:
+                    validGeos.append(ii)
+
+            fileName = validGeos[0]
+            exportObj(dialogPath=dialogPath[0], fileName=fileName)
+            print ('%s geometries exported to OBJ.' % len(validGeos)),
+
+    else:
+        cmds.warning("Nothing selected!"),
 
     return validGeos
 
 
 def exportBatch(*args):
+    """Available for a user for exporting selected geometries or all geometries in a hierarchy to separate OBJs
+
+        Returns:
+            validGeos (list): list of all geometries which are valid for export
+    """
     selection = cmds.ls(selection=True)
-    dialogPath = dialog(fileMode=2, diaCaption="Batch OBJ Export", okCaption="Export")
     validGeos = []
 
-    if dialogPath:
-        for i in selection:
-            allMeshes = cmds.listRelatives(cmds.listRelatives(i, allDescendents=True, type='mesh'), parent=True)
+    if len(selection) != 0:
+        dialogPath = dialog(dupCheck=True, fileMode=2, diaCaption="Batch OBJ Export", okCaption="Export")
 
-            for ii in allMeshes:
-                validGeos.append(ii)
+        if dialogPath:
+            for i in selection:
+                allMeshes = cmds.listRelatives(cmds.listRelatives(i, allDescendents=True, type='mesh'), parent=True)
 
-        for i in validGeos:
-            cmds.select(i)
-            fileName = i
-            exportObj(dialogPath=dialogPath[0], fileName=fileName)
+                for ii in allMeshes:
+                    validGeos.append(ii)
 
-        cmds.select(validGeos)
+            for i in validGeos:
+                cmds.select(i)
+                fileName = i
+                exportObj(dialogPath=dialogPath[0], fileName=fileName)
 
-        print ('%s OBJ exported.' % len(validGeos)),
+            cmds.select(validGeos)
+
+            print ('%s OBJ exported.' % len(validGeos)),
+
+    else:
+        cmds.warning("Nothing selected!"),
 
     return validGeos
 
 
 def buildUI():
+    """Building toolkit UI"""
 
+    # UI variables
     mainColor = [0.0438, 0.4032, 0.553]
     width = 150
 
     columnMain = cmds.columnLayout(rowSpacing=10)
 
+    # Import section
     cmds.frameLayout(label='Import OBJ', backgroundColor=mainColor, collapsable=False)
     cmds.columnLayout(rowSpacing=2)
 
@@ -251,6 +370,7 @@ def buildUI():
 
     cmds.checkBox('deleteCHCheckbox', label='Delete History', width=width)
 
+    # Export section
     cmds.setParent(columnMain)
 
     cmds.frameLayout(label='Export OBJ', backgroundColor=mainColor, collapsable=False)
@@ -259,16 +379,33 @@ def buildUI():
     cmds.button(label="Export Single", w=width, h=25, c=exportSingle)
     cmds.button(label="Export Batch", w=width, h=25, c=exportBatch)
 
+    # Footer section
     cmds.setParent(columnMain)
 
-    cmds.rowColumnLayout(numberOfColumns=2, columnWidth=[(1, (width/2)), (2, (width/2))])
-    cmds.text(label='Jan Jinda', align='left')
+    cmds.rowColumnLayout(numberOfColumns=2, columnWidth=[(1, (width / 2)), (2, (width / 2))])
+    cmds.text(label=__author__, align='left')
     cmds.text(label='')
-    cmds.text(label='<a href="http://janjinda.com">janjinda.com</a>', hyperlink=True, align='left')
-    cmds.text(label=('v%s' % version), align='right')
+    cmds.text(label=('v%s' % __version__), align='right')
+    cmds.text(label='<a href=%s>janjinda.com</a>' % __website__, hyperlink=True, align='left')
+
+
+def testCheckboxes():
+    """Checking state of UI checkboxes
+
+            Returns:
+                deleteCHCheckboxV (bool): result of Delete History checkbox
+     """
+    deleteCHCheckboxV = cmds.checkBox('deleteCHCheckbox', query=True, value=True)
+
+    return deleteCHCheckboxV
 
 
 def showUI():
+    """Showing toolkit UI, function called from Maya
+
+        Returns:
+            windowName (str): name of a toolkit window passed to Maya
+    """
     windowName = "ObjToolkitUI"
 
     if cmds.window(windowName, query=True, exists=True):
@@ -280,9 +417,3 @@ def showUI():
     cmds.showWindow(windowName)
 
     return windowName
-
-
-def testCheckboxes():
-    deleteCHCheckboxV = cmds.checkBox('deleteCHCheckbox', query=True, value=True)
-
-    return deleteCHCheckboxV

@@ -2,6 +2,7 @@
   <dictionary name="janjinda">
     <words>
       <w>cmds</w>
+      <w>deformer</w>
       <w>horiz</w>
       <w>vert</w>
       <w>wireframe</w>
