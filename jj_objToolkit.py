@@ -102,9 +102,17 @@ def exportObj(dialogPath, fileName):
         fileName (str): file name inherited from geometry name
     """
 
+    if testCheckboxes()[1]:
+        pmt = False
+        force = True
+    else:
+        pmt=True
+        force = False
+
     # File write command
     cmds.file('%s/%s.%s' % (dialogPath, fileName, 'obj'), force=False,
-              options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1', type='OBJexport', es=True)
+              options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1',
+              type='OBJexport', es=True, pmt=pmt, f=force)
 
     return fileName
 
@@ -156,7 +164,7 @@ def bSControlCreate(blendSList, origGeoList, *args):
     bSControlLoc = None
     bsControlAttr = None
 
-    if not testCheckboxes():
+    if not testCheckboxes()[0]:
 
         bSControlLoc = cmds.spaceLocator(n="bShape_ctrl")[0]
 
@@ -368,7 +376,7 @@ def buildUI():
     cmds.frameLayout(label='Import Options', collapsable=False)
     cmds.columnLayout(rowSpacing=2)
 
-    cmds.checkBox('deleteCHCheckbox', label='Delete History', width=width)
+    cmds.checkBox('deleteChckB', label='Delete History', width=width)
 
     # Export section
     cmds.setParent(columnMain)
@@ -378,6 +386,13 @@ def buildUI():
 
     cmds.button(label="Export Single", w=width, h=25, c=exportSingle)
     cmds.button(label="Export Batch", w=width, h=25, c=exportBatch)
+
+    cmds.setParent(columnMain)
+
+    cmds.frameLayout(label='Export Options', collapsable=False)
+    cmds.columnLayout(rowSpacing=2)
+
+    cmds.checkBox('forceOverwriteChckB', label='Force overwrite', width=width)
 
     # Footer section
     cmds.setParent(columnMain)
@@ -395,9 +410,10 @@ def testCheckboxes():
             Returns:
                 deleteCHCheckboxV (bool): result of Delete History checkbox
      """
-    deleteCHCheckboxV = cmds.checkBox('deleteCHCheckbox', query=True, value=True)
+    deleteCHCheckboxV = cmds.checkBox('deleteChckB', query=True, value=True)
+    forceOverwriteChckBV = cmds.checkBox('forceOverwriteChckB', query=True, value=True)
 
-    return deleteCHCheckboxV
+    return deleteCHCheckboxV, forceOverwriteChckBV
 
 
 def showUI():
