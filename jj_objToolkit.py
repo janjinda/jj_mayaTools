@@ -385,8 +385,8 @@ def buildUI():
     cmds.rowColumnLayout(numberOfColumns=2, columnWidth=[(1, (width / 2)), (2, (width / 2))])
     cmds.text(label=__author__, align='left')
     cmds.text(label='')
-    cmds.text(label=('v%s' % __version__), align='right')
     cmds.text(label='<a href=%s>janjinda.com</a>' % __website__, hyperlink=True, align='left')
+    cmds.text(label=('v%s' % __version__), align='right')
 
 
 def testCheckboxes():
