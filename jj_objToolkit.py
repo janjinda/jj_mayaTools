@@ -2,7 +2,7 @@
 
 __author__ = "Jan Jinda"
 __version__ = "0.9.7"
-__documentation__ = "http://janjinda.artstation.com/pages/jj-obj-toolkit-help"
+__documentation__ = "http://janjinda.com/pages/jj-obj-toolkit-help"
 __email__ = "janjinda@janjinda.com"
 __website__ = "http://janjinda.com"
 
@@ -126,7 +126,7 @@ def duplicateCheck():
      """
 
     # Check if there is duplicate geometry based on mayas long name
-    sceneMeshes = cmds.ls(type='mesh')
+    sceneMeshes = cmds.listRelatives(cmds.ls(type='mesh'),parent=True)
     dupExists = any('|' in i for i in sceneMeshes)
 
     return dupExists
