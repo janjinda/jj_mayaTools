@@ -1,7 +1,7 @@
 # JJ Obj Toolkit is a simple set of tools for easier OBJ files manipulation within Maya.
 
 __author__ = "Jan Jinda"
-__version__ = "0.9.7"
+__version__ = "0.9.8"
 __documentation__ = "http://janjinda.com/pages/jj-obj-toolkit-help"
 __email__ = "janjinda@janjinda.com"
 __website__ = "http://janjinda.com"
