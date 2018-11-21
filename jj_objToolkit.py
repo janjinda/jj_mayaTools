@@ -208,7 +208,6 @@ def importSingle(*args):
     if dialogOut:
         # Run main importObj function
         newGeos = [importObj(dialogOut[0])]
-        cmds.select(clear=True)
 
         print "%s OBJs were imported." % len(newGeos),
 
@@ -231,7 +230,6 @@ def importBatch(*args):
             # Run main importObj function
             newGeo = importObj(i)
             newGeos.append(newGeo)
-        cmds.select(clear=True)
 
         print "%s OBJs were imported." % len(newGeos),
 
@@ -248,10 +246,10 @@ def importSingleBS(*args):
     """
 
     # Empty variables as they are returned at the end, store selection
-    newGeos = []
     origGeos = cmds.ls(selection=True)
     blendSList = []
     bSControlLoc = None
+    nonBlendS = []
 
     # Find if one geometry is selected
     if len(origGeos) == 1:
@@ -270,6 +268,7 @@ def importSingleBS(*args):
                 bSControlLoc = bSControlCreate(blendSList=blendSList, origGeoList=origGeos[0])[0]
                 cmds.select(bSControlLoc)
 
+            print newGeos, source, nonBlendS
             print "%s OBJs were imported. %s OBJs were blend shaped." % (len(newGeos), len(blendSList)),
 
     else:
@@ -291,6 +290,7 @@ def importBatchBS(*args):
     sceneGeos = cmds.listRelatives(cmds.ls(type='mesh'), parent=True)
     validGeos = []
     newGeos = importBatch()
+    nonBlendS = []
     blendSList = []
     bSControlLoc = None
 
@@ -308,6 +308,15 @@ def importBatchBS(*args):
                     blendS = bSCreate(source=source, target=target)
                     blendSList.append(blendS)
 
+                else:
+                    nonBlendS.append(source)
+
+            else:
+                nonBlendS.append(source)
+
+        if not len(nonBlendS)  == 0:
+            groupObj = cmds.group(nonBlendS, name='OBJ_import_grp')
+
         # Create a locator
         if blendSList:
             bSControlLoc = bSControlCreate(blendSList=blendSList, origGeoList=validGeos)[0]
@@ -318,7 +327,7 @@ def importBatchBS(*args):
         else:
             print "%s OBJs imported. %s OBJs blend shaped. History deleted." % (len(newGeos), len(blendSList)),
 
-    return newGeos, blendSList, bSControlLoc
+    return newGeos, groupObj, blendSList, bSControlLoc
 
 
 def exportSingle(*args):
