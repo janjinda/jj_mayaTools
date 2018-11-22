@@ -162,6 +162,7 @@ def exportObj(batch, *args):
             if batch:
                 # Batch export
                 for i in validGeos:
+                    cmds.select(i,replace=True)
                     cmds.file('%s/%s.%s' % (dialogOut, i, 'obj'), force=False,
                               options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1',
                               type='OBJexport', es=True, pmt=pmt, f=force)
