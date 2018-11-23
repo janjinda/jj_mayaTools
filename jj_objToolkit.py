@@ -2,7 +2,7 @@
 
 __author__ = "Jan Jinda"
 __version__ = "0.9.9"
-__documentation__ = "http://janjinda.com/pages/jj-obj-toolkit-help"
+__documentation__ = "https://janjinda.artstation.com/pages/jj-obj-toolkit-documentation"
 __email__ = "janjinda@janjinda.com"
 __website__ = "http://janjinda.com"
 
@@ -37,7 +37,7 @@ def dialog(dupCheck, diaCaption, fileMode, okCaption):
     else:
         # Store dialog output to a variable
         dialogOut = cmds.fileDialog2(fileMode=fileMode, caption=diaCaption, okCaption=okCaption,
-                                      dialogStyle=2, fileFilter="Waveform OBJ (*.obj *.OBJ)")
+                                     dialogStyle=2, fileFilter="Waveform OBJ (*.obj *.OBJ)")
 
     return dialogOut
 
@@ -111,16 +111,22 @@ def importObj(fileMode, *args):
 
         objGroup = cmds.group(newGeos, name='OBJ_import_%s_grp' % ('%03d' % num))
 
-        print "%s OBJs were imported." % len(newGeos),
+        if testCheckboxes()[0] and len(newGeos) > 1:
+            combinedGeo = cmds.polyUnite(newGeos, mergeUVSets=True, name="%s_X" % newGeos[0])[0]
+            cmds.parent(combinedGeo, objGroup)
+            cmds.delete(constructionHistory=True)
+            cmds.rename(combinedGeo, combinedGeo[:-2])
+
+            print "%s OBJs were imported and combined to single geometry." % len(newGeos),
+        else:
+            print "%s OBJs were imported." % len(newGeos),
 
     return newGeos, objGroup
 
 
-def exportObj(batch, *args):
+def exportObj(*args):
     """Main import function available for a user
 
-    Parameters:
-        batch (bool): switch between single and batch export
 
     Returns:
         validGeos (list): list of all exported geometries
@@ -133,13 +139,13 @@ def exportObj(batch, *args):
     # Check if at least one geometry is selected
     if len(selection) != 0:
         # Check export mode
-        if batch:
+        if testCheckboxes()[2]:
             diaCaption = 'Single'
         else:
             diaCaption = 'Batch'
 
         # Check Force overwrite checkbox
-        if testCheckboxes()[1]:
+        if testCheckboxes()[3]:
             pmt = False
             force = True
         else:
@@ -147,9 +153,10 @@ def exportObj(batch, *args):
             force = False
 
         # Open dialog and store it's output
-        dialogOut = dialog(dupCheck=False, fileMode=2, diaCaption="%s OBJ Export" % diaCaption, okCaption="Export")[0]
+        dialogOut = dialog(dupCheck=False, fileMode=2, diaCaption="%s OBJ Export" % diaCaption, okCaption="Export")
 
         if dialogOut:
+            dialogOut = dialogOut[0]
             for i in selection:
                 # Store transforms of all selected geometries
                 allMeshes = cmds.listRelatives(cmds.listRelatives(i, allDescendents=True, type='mesh', path=True),
@@ -159,10 +166,10 @@ def exportObj(batch, *args):
                 for ii in allMeshes:
                     validGeos.append(ii)
 
-            if batch:
+            if not testCheckboxes()[2]:
                 # Batch export
                 for i in validGeos:
-                    cmds.select(i,replace=True)
+                    cmds.select(i, replace=True)
                     cmds.file('%s/%s.%s' % (dialogOut, i, 'obj'), force=False,
                               options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1',
                               type='OBJexport', es=True, pmt=pmt, f=force)
@@ -176,6 +183,8 @@ def exportObj(batch, *args):
                           type='OBJexport', es=True, pmt=pmt, f=force)
 
                 print ('%s geometries exported to single OBJ.' % len(validGeos)),
+
+            cmds.select(validGeos, replace=True)
 
     else:
         cmds.warning("Nothing selected."),
@@ -191,7 +200,7 @@ def duplicateCheck():
      """
 
     # Check if there is duplicate geometry based on mayas long name
-    sceneMeshes = cmds.listRelatives(cmds.ls(type='mesh'),parent=True)
+    sceneMeshes = cmds.listRelatives(cmds.ls(type='mesh'), parent=True)
     dupExists = any('|' in i for i in sceneMeshes)
 
     return dupExists
@@ -207,7 +216,7 @@ def bSCreate(source, target):
         Returns:
             blendS (str): name of a created blend shape deformer
     """
-    
+
     # Create blend shape between source and target
     blendS = cmds.blendShape(source, target)[0]
     cmds.setAttr('%s.%s' % (blendS, source), 1)
@@ -233,20 +242,20 @@ def bSControlCreate(blendSList, origGeoList, *args):
     bsControlAttr = None
 
     # Check if Delete history option is checked
-    if not testCheckboxes()[0]:
+    if not testCheckboxes()[1]:
         # Create locator and list all keyable attributes
         bSControlLoc = cmds.spaceLocator(n="bShape_ctrl")[0]
         availableAttrs = cmds.listAttr(bSControlLoc, keyable=True)
-        
+
         # Lock all keyable attributes
         for i in availableAttrs:
             cmds.setAttr('%s.%s' % (bSControlLoc, i), lock=True, keyable=False)
-        
+
         # Create custom attritube on the locator
         bsControlAttr = cmds.addAttr(bSControlLoc, shortName='bsAmount', longName='Blend_Shapes_Amount',
                                      defaultValue=1.0,
                                      minValue=0, maxValue=1, keyable=True)
-        
+
         # Connect all blend shapes to the custom attribute
         for i in blendSList:
             if i:
@@ -373,7 +382,7 @@ def buildUI():
     cmds.frameLayout(label='Import OBJ', backgroundColor=mainColor, collapsable=False)
     cmds.columnLayout(rowSpacing=2)
 
-    cmds.button(label="Import", w=winWidth, h=25, c=partial(importObj, 4))
+    cmds.button(label="Import", w=winWidth, h=25, c=partial(importObj, 4, False))
     cmds.button(label="Import Single as bShape", w=winWidth, h=25, c=importSingleBS)
     cmds.button(label="Import Batch as bShape", w=winWidth, h=25, c=importBatchBS)
 
@@ -382,6 +391,7 @@ def buildUI():
     cmds.frameLayout(label='Import Options', collapsable=False)
     cmds.columnLayout(rowSpacing=2)
 
+    cmds.checkBox('importSingleChckB', label='Import as single geo', width=winWidth)
     cmds.checkBox('deleteChckB', label='Delete History', width=winWidth)
 
     # Export section
@@ -390,14 +400,14 @@ def buildUI():
     cmds.frameLayout(label='Export OBJ', backgroundColor=mainColor, collapsable=False)
     cmds.columnLayout(rowSpacing=2)
 
-    cmds.button(label="Export Single", w=winWidth, h=25, c=partial(exportObj, False))
-    cmds.button(label="Export Batch", w=winWidth, h=25, c=partial(exportObj, True))
+    cmds.button(label="Export", w=winWidth, h=25, c=exportObj)
 
     cmds.setParent(columnMain)
 
     cmds.frameLayout(label='Export Options', collapsable=False)
     cmds.columnLayout(rowSpacing=2)
 
+    cmds.checkBox('exportSingleChckB', label='Export as single OBJ', width=winWidth)
     cmds.checkBox('forceOverwriteChckB', label='Force overwrite', width=winWidth)
 
     cmds.setParent(columnMain)
@@ -424,10 +434,13 @@ def testCheckboxes():
                 deleteCHCheckboxV (bool): result of Delete History checkbox
     """
 
+    importSingleCHCheckboxV = cmds.checkBox('importSingleChckB', query=True, value=True)
     deleteCHCheckboxV = cmds.checkBox('deleteChckB', query=True, value=True)
+
+    exportSingleCHCheckboxV = cmds.checkBox('exportSingleChckB', query=True, value=True)
     forceOverwriteChckBV = cmds.checkBox('forceOverwriteChckB', query=True, value=True)
 
-    return deleteCHCheckboxV, forceOverwriteChckBV
+    return importSingleCHCheckboxV, deleteCHCheckboxV, exportSingleCHCheckboxV, forceOverwriteChckBV
 
 
 def help(*args):

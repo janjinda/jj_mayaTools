@@ -7,40 +7,54 @@
 <body>
 
 <h1>JJ OBJ Toolkit</h1>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin pharetra facilisis enim eget fermentum. Morbi ut luctus
-sem. Pellentesque aliquam porta sem in venenatis. Nunc mollis dignissim turpis, at finibus urna finibus at.
-Pellentesque in iaculis neque. Sed auctor nulla massa, faucibus posuere nunc auctor in. Quisque ac venenatis erat,
-rutrum cursus quam.</p>
 
-<h3>Installation</h3>
-<ul>
-    <li><b>Windows</b> - $HOME/maya</li>
-    <li><b>MacOs</b> - $HOME/Library/Preferences/Autodesk/maya</li>
-    <li><b>Linux</b> - \Users\&ltusername&gt\Documents\maya</li>
-</ul>
-<br>
-import jj_objToolkit<br>
-reload(jj_objToolkit)<br>
-<br>
-ui = jj_objToolkit.showUI()<br>
+<b>Download</b> - <br>
+
+<b>Latest version </b> - v0.9.9 <br>
+
+<b>Maya version</b> - tested in 2018, 2017, 2016 <br>
+<p>
+    This toolkit is a set of simple scripts tailored to provide clean, easier and more affective workflow for handling OBJ files in Maya. Thanks to the Import as blend shape options it keeps all your scene hierarchy, geometry UVs, shader assignments etc.
+</p>
 
 <h3>Why OBJ?</h3>
+<p>OBJ is basically very simple text file containing just vertex positions, face normals, UVs and group names. Therefore it is very suitable if model is needed to be passed between softwares. Probably the main destination for OBJ files is ZBrush. It is used not just for sculpting details, but even for bigger overall changes to a lot of individual geometries, thanks to it's Transpose Master.</p>
 
-<h2>Import Single</h2>
+<h3>Installation</h3>
+<p>
+    Copy <i>jj_objToolkit.py</i> from the zip file to your scripts folder. Usually at these locations ():
+</p>
 
-<h2>Import Batch</h2>
+<ul>
+    <li><b>Windows</b> - <i>\&ltuser’s directory&gt\My Documents/Maya\&ltversion&gt\scripts</i></li>
+    <li><b>MacOs</b> - <i>/Users/Shared/Autodesk/Maya/&ltversion&gt/scripts</i></li>
+    <li><b>Linux</b> - <i>$MAYA_APP_DIR/Maya/&ltversion&gt/scripts</i></li>
+</ul>
+<p>Run following script or make a shelf button with following script (<a href="https://knowledge.autodesk.com/support/maya/learn-explore/caas/CloudHelp/cloudhelp/2016/ENU/Maya/files/GUID-527023AE-9FB5-4D01-8D29-075B1E6C4754-htm.html">How to make a shelf button</a>)</p>
 
-<h2>Import Single as bShape</h2>
+import jj_objToolkit<br>
+ui = jj_objToolkit.showUI()<br>
 
-<h2>Import Batch as bShape</h2>
+<h4>Import</h4>
+<p>Choose one or multiple OBJ files which you want to import into a scene and group them to OBJ_import_grp. Script will name every geometry based on the file name free from all the clutter Maya usually imports with OBJs (shaders, shading groups, faceted normals,  selection sets, etc.)</p>
 
-<h2>Import Options</h2>
+<h4>Import Single as bShape</h4>
+<p>Select one geometry and choose an OBJ file which will be applied as a blend shape. Controller will be automatically created with a blend value attribute. If OBJ is not a valid geometry for a blend shape, it will be grouped to OBJ_import_grp.</p>
 
-<h2>Export Single</h2>
+<h4>Import Batch as bShape</h4>
+<p>Choose an OBJ files which will be applied as blend shapes to corresponding geometries in the scene based on matching OBJ and geometry name. Controller will be automatically created with a blend value attribute. If OBJ is not a valid geometry for a blend shape, it will be grouped to OBJ_import_grp.</p>
 
-<h2>Export Batch</h2>
+<h4>Import Options</h4>
+<p><b><i>Delete history</i></b> - When enabled a blend shape controller would not be created and construction history will be deleted on blend shaped geometries</p>
 
-<h2>Export Options</h2>
+<h4>Export Single</h4>
+<p>Select one or multiple geometries or parent of the hierarchy. All selected geometries or geometries found in hierarchy will be exported as a single OBJ and it will be named after the first geometry.</p>
+
+<h4>Export Batch</h4>
+<p>Select multiple geometries or parent of the hierarchy. Each selected geometry or geometries found in hierarchy will be exported as individual OBJ named after a geometry name.</p>
+
+<h4>Export Options</h4>
+<p><b><i>Force Overwrite</i></b> - skips Maya's dialog when overwriting existing OBJ file</p>
 
 </body>
 </html>
