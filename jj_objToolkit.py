@@ -111,13 +111,16 @@ def importObj(fileMode, *args):
 
         objGroup = cmds.group(newGeos, name='OBJ_import_%s_grp' % ('%03d' % num))
 
+        # Check if OBJs should be combined
         if testCheckboxes()[0] and len(newGeos) > 1:
+            # Combine new geometries and parent result under OBJ_import_*_grp
             combinedGeo = cmds.polyUnite(newGeos, mergeUVSets=True, name="%s_X" % newGeos[0])[0]
             cmds.parent(combinedGeo, objGroup)
             cmds.delete(constructionHistory=True)
             cmds.rename(combinedGeo, combinedGeo[:-2])
 
             print "%s OBJs were imported and combined to single geometry." % len(newGeos),
+
         else:
             print "%s OBJs were imported." % len(newGeos),
 
@@ -166,7 +169,17 @@ def exportObj(*args):
                 for ii in allMeshes:
                     validGeos.append(ii)
 
-            if not testCheckboxes()[2]:
+            # Check if just single file should be exported
+            if testCheckboxes()[2]:
+                # Single export
+                cmds.file('%s/%s.%s' % (dialogOut, validGeos[0], 'obj'), force=False,
+                          options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1',
+                          type='OBJexport', es=True, pmt=pmt, f=force)
+
+                print ('%s geometries exported to single OBJ.' % len(validGeos)),
+
+            else:
+
                 # Batch export
                 for i in validGeos:
                     cmds.select(i, replace=True)
@@ -175,14 +188,6 @@ def exportObj(*args):
                               type='OBJexport', es=True, pmt=pmt, f=force)
 
                 print ('%s geometries exported to OBJs.' % len(validGeos)),
-
-            else:
-                # Single export
-                cmds.file('%s/%s.%s' % (dialogOut, validGeos[0], 'obj'), force=False,
-                          options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1',
-                          type='OBJexport', es=True, pmt=pmt, f=force)
-
-                print ('%s geometries exported to single OBJ.' % len(validGeos)),
 
             cmds.select(validGeos, replace=True)
 
@@ -373,6 +378,7 @@ def buildUI():
 
     # UI variables
     mainColor = [0.0438, 0.4032, 0.553]
+    buttonColor = [0.45, 0.45, 0.45]
     winWidth = 150
     winHeight = 360
 
@@ -382,9 +388,9 @@ def buildUI():
     cmds.frameLayout(label='Import OBJ', backgroundColor=mainColor, collapsable=False)
     cmds.columnLayout(rowSpacing=2)
 
-    cmds.button(label="Import", w=winWidth, h=25, c=partial(importObj, 4, False))
-    cmds.button(label="Import Single as bShape", w=winWidth, h=25, c=importSingleBS)
-    cmds.button(label="Import Batch as bShape", w=winWidth, h=25, c=importBatchBS)
+    cmds.button(label="Import", backgroundColor=buttonColor, w=winWidth, h=25, c=partial(importObj, 4, False))
+    cmds.button(label="Import Single as bShape", backgroundColor=buttonColor, w=winWidth, h=25, c=importSingleBS)
+    cmds.button(label="Import Batch as bShape", backgroundColor=buttonColor, w=winWidth, h=25, c=importBatchBS)
 
     cmds.setParent(columnMain)
 
@@ -400,7 +406,7 @@ def buildUI():
     cmds.frameLayout(label='Export OBJ', backgroundColor=mainColor, collapsable=False)
     cmds.columnLayout(rowSpacing=2)
 
-    cmds.button(label="Export", w=winWidth, h=25, c=exportObj)
+    cmds.button(label="Export", backgroundColor=buttonColor, w=winWidth, h=25, c=exportObj)
 
     cmds.setParent(columnMain)
 
@@ -431,16 +437,19 @@ def testCheckboxes():
     """Check state of UI checkboxes
 
             Returns:
-                deleteCHCheckboxV (bool): result of Delete History checkbox
+                importSingleChckV (bool): value of Import as single geometry checkbox
+                deleteCHChckV (bool): value of Delete History checkbox
+                exportSingleChckV (bool): value of Export as single OBJ checkbox
+                forceOverwriteChckV (bool): value of Force overwrite checkbox
     """
 
-    importSingleCHCheckboxV = cmds.checkBox('importSingleChckB', query=True, value=True)
-    deleteCHCheckboxV = cmds.checkBox('deleteChckB', query=True, value=True)
+    importSingleChckV = cmds.checkBox('importSingleChckB', query=True, value=True)
+    deleteCHChckV = cmds.checkBox('deleteChckB', query=True, value=True)
 
-    exportSingleCHCheckboxV = cmds.checkBox('exportSingleChckB', query=True, value=True)
-    forceOverwriteChckBV = cmds.checkBox('forceOverwriteChckB', query=True, value=True)
+    exportSingleChckV = cmds.checkBox('exportSingleChckB', query=True, value=True)
+    forceOverwriteChckV = cmds.checkBox('forceOverwriteChckB', query=True, value=True)
 
-    return importSingleCHCheckboxV, deleteCHCheckboxV, exportSingleCHCheckboxV, forceOverwriteChckBV
+    return importSingleChckV, deleteCHChckV, exportSingleChckV, forceOverwriteChckV
 
 
 def help(*args):

@@ -36,7 +36,7 @@ import jj_objToolkit<br>
 ui = jj_objToolkit.showUI()<br>
 
 <h4>Import</h4>
-<p>Choose one or multiple OBJ files which you want to import into a scene and group them to OBJ_import_grp. Script will name every geometry based on the file name free from all the clutter Maya usually imports with OBJs (shaders, shading groups, faceted normals,  selection sets, etc.)</p>
+<p>Choose one or multiple OBJ files. All those will be imported and grouped in OBJ_import_grp (unless Import as single geo is enabled). Script will name every geometry based on the file name free from all the clutter Maya usually imports with OBJs (shaders, shading groups, faceted normals,  selection sets, etc.)</p>
 
 <h4>Import Single as bShape</h4>
 <p>Select one geometry and choose an OBJ file which will be applied as a blend shape. Controller will be automatically created with a blend value attribute. If OBJ is not a valid geometry for a blend shape, it will be grouped to OBJ_import_grp.</p>
@@ -45,15 +45,14 @@ ui = jj_objToolkit.showUI()<br>
 <p>Choose an OBJ files which will be applied as blend shapes to corresponding geometries in the scene based on matching OBJ and geometry name. Controller will be automatically created with a blend value attribute. If OBJ is not a valid geometry for a blend shape, it will be grouped to OBJ_import_grp.</p>
 
 <h4>Import Options</h4>
+<p><b><i>Import as single geo</i></b> - When enabled multiple OBJ files will be combined to a single geometry</p>
 <p><b><i>Delete history</i></b> - When enabled a blend shape controller would not be created and construction history will be deleted on blend shaped geometries</p>
 
-<h4>Export Single</h4>
-<p>Select one or multiple geometries or parent of the hierarchy. All selected geometries or geometries found in hierarchy will be exported as a single OBJ and it will be named after the first geometry.</p>
-
-<h4>Export Batch</h4>
-<p>Select multiple geometries or parent of the hierarchy. Each selected geometry or geometries found in hierarchy will be exported as individual OBJ named after a geometry name.</p>
+<h4>Export</h4>
+<p>Select one or multiple geometries or parent of the hierarchy. All selected geometries or geometries found in hierarchy will be exported as individual OBJs (unless Export as single OBJ is enabled) and they will be named after geometry names.</p>
 
 <h4>Export Options</h4>
+<p><b><i>Export as single OBJe</i></b> - When enabled selected geometries or hierarchy will be exported as single OBJ file.</p>
 <p><b><i>Force Overwrite</i></b> - skips Maya's dialog when overwriting existing OBJ file</p>
 
 </body>
