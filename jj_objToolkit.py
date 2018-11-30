@@ -109,7 +109,8 @@ def importObj(fileMode, *args):
             # If group exists increment it's number
             num = (int(cmds.ls('OBJ_import_*')[-1].split('_')[-2])) + 1
 
-        objGroup = cmds.group(newGeos, name='OBJ_import_%s_grp' % ('%03d' % num))
+        objGroup = cmds.group(name='OBJ_import_%s_grp' % ('%03d' % num), empty=True)
+        cmds.parent(newGeos, objGroup)
 
         # Check if OBJs should be combined
         if testCheckboxes()[0] and len(newGeos) > 1:
@@ -377,7 +378,7 @@ def buildUI():
     """Build toolkit UI"""
 
     # UI variables
-    mainColor = [0.0438, 0.4032, 0.553]
+    mainColor = [0.33, 0.58, 0.63]
     buttonColor = [0.45, 0.45, 0.45]
     winWidth = 150
     winHeight = 360
@@ -389,8 +390,8 @@ def buildUI():
     cmds.columnLayout(rowSpacing=2)
 
     cmds.button(label="Import", backgroundColor=buttonColor, w=winWidth, h=25, c=partial(importObj, 4, False))
-    cmds.button(label="Import Single as bShape", backgroundColor=buttonColor, w=winWidth, h=25, c=importSingleBS)
-    cmds.button(label="Import Batch as bShape", backgroundColor=buttonColor, w=winWidth, h=25, c=importBatchBS)
+    cmds.button(label="Import Single as blendS", backgroundColor=buttonColor, w=winWidth, h=25, c=importSingleBS)
+    cmds.button(label="Import Batch as blendS", backgroundColor=buttonColor, w=winWidth, h=25, c=importBatchBS)
 
     cmds.setParent(columnMain)
 
