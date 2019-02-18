@@ -26,7 +26,7 @@ jj_objToolkit.showUI()
 """
 
 __author__ = "Jan Jinda"
-__version__ = "1.0.0"
+__version__ = "1.0.2"
 __documentation__ = "https://janjinda.artstation.com/pages/jj-obj-toolkit-doc"
 __email__ = "janjinda@janjinda.com"
 __website__ = "http://janjinda.com"
@@ -124,7 +124,7 @@ def importObj(fileMode, *args):
                 newGeo = cmds.rename(tempGeoName, newGeo)
                 newGeos.append(newGeo)
             else:
-                newGeo = cmds.rename(tempGeoName, ("%s_OBJ" % newGeo))
+                newGeo = cmds.rename(tempGeoName, ("%s_obj" % newGeo))
                 newGeos.append(newGeo)
 
         # Check if OBJ_import group already exists
@@ -346,6 +346,52 @@ def importSingleBS(*args):
     return newGeos, blendSList, bSControlLoc
 
 
+def importBatchBSs(*args):
+    """Available for a user for importing single OBJ as a blend shape to an existing geometry
+
+        Returns:
+            newGeos (list): list of all new imported geometries
+            blendSList (list): list of all created blend shapes
+            bSControlLoc(str): name of a created blend shapes controller
+    """
+
+    # Empty variables as they are returned at the end, store selection
+    origGeos = cmds.ls(selection=True)
+    blendSList = []
+    bSControlLoc = None
+    newGeos = []
+    validGeos = []
+
+    # Find if one geometry is selected
+    if len(origGeos) == 1:
+        # Run importSingle function
+        newGeos, objGroup = importObj(4)
+        target = origGeos[0]
+        if newGeos:
+            # Define source and target for a blend shape
+            for i in newGeos:
+                if cmds.polyEvaluate(i, v=True) == cmds.polyEvaluate(target, v=True):
+                    validGeos.append(i)
+
+            # Check if source and target have same vertex count
+            if validGeos:
+                validGeos.append(target)
+                blendS = cmds.blendShape(validGeos)
+                blendSList.append(blendS)
+
+                cmds.delete(objGroup)
+                cmds.select(blendS)
+
+                print "%s OBJs imported. %s OBJs blend shaped." % (len(newGeos), len(validGeos)-1),
+            else:
+                print "%s OBJs imported. %s OBJs blend shaped." % (len(newGeos), len(validGeos)),
+
+    else:
+        cmds.warning("Please select one geometry.")
+
+    return newGeos, blendSList
+
+
 def importBatchBS(*args):
     """Available for a user for importing multiple OBJ as a blend shape to an existing corresponding geometries
 
@@ -356,19 +402,26 @@ def importBatchBS(*args):
     """
 
     # Empty variables as they are returned at the end, import OBJs and store all geometries in the scene
-    sceneGeos = cmds.listRelatives(cmds.ls(type='mesh'), parent=True)
+    sceneGeos = [x.encode('UTF8') for x in cmds.listRelatives(cmds.ls(type='mesh'), parent=True)]
     validGeos = []
     newGeos, objGroup = importObj(4)
     nonBlendS = []
     blendSList = []
     bSControlLoc = None
 
+    # Convert lists to dictionary with matching lowercase names
+    sceneGeos = {i: i.lower() for i in sceneGeos}
+
     if newGeos:
         for source in newGeos:
-            target = source.replace('_OBJ', '')
+
+            sourceLwr = source.lower()
+            sourceLwr = sourceLwr.encode('UTF8')
+            targetLwr = sourceLwr.replace('_obj', '')
 
             # Check if imported OBJ name matches with any geometry in the scene
-            if target in sceneGeos:
+            if targetLwr in sceneGeos.values():
+                target = sceneGeos.keys()[sceneGeos.values().index(targetLwr)]
                 # Check if source and target have same vertex count
                 if cmds.polyEvaluate(source, v=True) == cmds.polyEvaluate(target, v=True):
                     validGeos.append(target)
@@ -416,6 +469,7 @@ def buildUI():
 
     cmds.button(label="Import", backgroundColor=buttonColor, w=winWidth, h=25, c=partial(importObj, 4, False))
     cmds.button(label="Import Single as blendS", backgroundColor=buttonColor, w=winWidth, h=25, c=importSingleBS)
+    cmds.button(label="Import Batch as bS on Geo", backgroundColor=buttonColor, w=winWidth, h=25, c=importBatchBSs)
     cmds.button(label="Import Batch as blendS", backgroundColor=buttonColor, w=winWidth, h=25, c=importBatchBS)
 
     cmds.setParent(columnMain)
