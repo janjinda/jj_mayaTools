@@ -26,7 +26,7 @@ jj_objToolkit.showUI()
 """
 
 __author__ = "Jan Jinda"
-__version__ = "1.0.1"
+__version__ = "1.0.0"
 __documentation__ = "https://janjinda.artstation.com/pages/jj-obj-toolkit-doc"
 __email__ = "janjinda@janjinda.com"
 __website__ = "http://janjinda.com"
