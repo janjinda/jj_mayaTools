@@ -556,6 +556,10 @@ def showUI():
     if cmds.window(windowName, query=True, exists=True):
         cmds.deleteUI(windowName)
 
+    # Load OBJ plugin
+
+    cmds.loadPlugin('objExport.bundle', qt=True)
+
     # Create window
     cmds.window(windowName, title="JJ OBJ Toolkit", sizeable=False)
 
