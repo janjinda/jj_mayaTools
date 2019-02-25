@@ -2,31 +2,19 @@
 JJ Obj Toolkit is a set of simple scripts tailored to provide clean, easier and more effective
 workflow for handling OBJ files in Maya. Thanks to the Import as blend shape options it keeps all your scene
 hierarchy, geometry UVs, shader assignments etc.
-
-
 Installation
 ============
-
 Copy jj_objToolkit.py from the zip file to your scripts folder. Usually at these locations ():
-
-
 Windows - \<user's directory>\My Documents/Maya\<version>\scripts
-
 MacOs - /Users/<user's directory>/Library/Preferences/Autodesk/maya/<version>/scripts
-
 Linux - $MAYA_APP_DIR/Maya/<version>/scripts
-
-
 Run following script or make a shelf button with following script.
-
-
 import jj_objToolkit
 jj_objToolkit.showUI()
-
 """
 
 __author__ = "Jan Jinda"
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 __documentation__ = "https://janjinda.artstation.com/pages/jj-obj-toolkit-doc"
 __email__ = "janjinda@janjinda.com"
 __website__ = "http://janjinda.com"
@@ -38,7 +26,6 @@ from functools import partial
 
 def dialog(dupCheck, diaCaption, fileMode, okCaption):
     """Opens an file dialog set up based on given parameters
-
     Parameters:
         dupCheck (boll):
         diaCaption (str): dialog window caption
@@ -49,7 +36,6 @@ def dialog(dupCheck, diaCaption, fileMode, okCaption):
                         3 The name of a directory. Only directories are displayed in the dialog
                         4 Then names of one or more existing files
         okCaption (str): caption of the OK button
-
     Returns:
         dialogOut (list): output selection from a dialog
     """
@@ -67,12 +53,10 @@ def dialog(dupCheck, diaCaption, fileMode, okCaption):
     return dialogOut
 
 
-def importObj(fileMode, *args):
+def importObj(fileMode, combine, *args):
     """Main import function available for a user, removes all unnecessary nodes
-
     Parameters:
         fileMode (int): passes fileMode to a dialog function
-
     Returns:
         newGeo (str): newly imported geometry
     """
@@ -138,7 +122,7 @@ def importObj(fileMode, *args):
         cmds.parent(newGeos, objGroup)
 
         # Check if OBJs should be combined
-        if testCheckboxes()[0] and len(newGeos) > 1:
+        if combine and len(newGeos) > 1:
             # Combine new geometries and parent result under OBJ_import_*_grp
             combinedGeo = cmds.polyUnite(newGeos, mergeUVSets=True, name="%s_X" % newGeos[0])[0]
             cmds.parent(combinedGeo, objGroup)
@@ -155,8 +139,6 @@ def importObj(fileMode, *args):
 
 def exportObj(*args):
     """Main import function available for a user
-
-
     Returns:
         validGeos (list): list of all exported geometries
     """
@@ -225,7 +207,6 @@ def exportObj(*args):
 
 def duplicateCheck():
     """Main export function
-
      Returns:
          dupExists (bool): result of the check
      """
@@ -239,11 +220,9 @@ def duplicateCheck():
 
 def bSCreate(source, target):
     """Creates blend shape deformer
-
         Parameters:
             source (list): blend shape source geometry
             target (str): blend shape target geometry
-
         Returns:
             blendS (str): name of a created blend shape deformer
     """
@@ -258,11 +237,9 @@ def bSCreate(source, target):
 
 def bSControlCreate(blendSList, origGeoList, *args):
     """Creates locator with an attribute for controlling all created blend shapes
-
         Parameters:
             blendSList (list): list of all created blend shapes
             origGeoList (list): list of all geometries which were blend shaped
-
         Returns:
             bSControlLoc (str): name of a created locator
             bsControlAttr (str): name of a created custom attribute
@@ -301,7 +278,6 @@ def bSControlCreate(blendSList, origGeoList, *args):
 
 def importSingleBS(*args):
     """Available for a user for importing single OBJ as a blend shape to an existing geometry
-
         Returns:
             newGeos (list): list of all new imported geometries
             blendSList (list): list of all created blend shapes
@@ -348,7 +324,6 @@ def importSingleBS(*args):
 
 def importBatchBSs(*args):
     """Available for a user for importing single OBJ as a blend shape to an existing geometry
-
         Returns:
             newGeos (list): list of all new imported geometries
             blendSList (list): list of all created blend shapes
@@ -394,7 +369,6 @@ def importBatchBSs(*args):
 
 def importBatchBS(*args):
     """Available for a user for importing multiple OBJ as a blend shape to an existing corresponding geometries
-
         Returns:
             newGeos (list): list of all new imported geometries
             blendSList (list): list of all created blend shapes
@@ -451,6 +425,20 @@ def importBatchBS(*args):
 
     return newGeos, objGroup, blendSList, bSControlLoc
 
+def importMaster(*args):
+
+    if queryIRadio() == 'iSingle':
+        importObj(4, True)
+
+    if queryIRadio() == 'iBatch':
+        importObj(4, False)
+
+    if queryIRadio() == 'iBatchSingle':
+        importBatchBSs()
+
+    if queryIRadio() == 'iBatchMultiple':
+        importBatchBS()
+
 
 def buildUI():
     """Build toolkit UI"""
@@ -467,18 +455,23 @@ def buildUI():
     cmds.frameLayout(label='Import OBJ', backgroundColor=mainColor, collapsable=False)
     cmds.columnLayout(rowSpacing=2)
 
-    cmds.button(label="Import", backgroundColor=buttonColor, w=winWidth, h=25, c=partial(importObj, 4, False))
-    cmds.button(label="Import Single as blendS", backgroundColor=buttonColor, w=winWidth, h=25, c=importSingleBS)
-    cmds.button(label="Import Batch as bS on Geo", backgroundColor=buttonColor, w=winWidth, h=25, c=importBatchBSs)
-    cmds.button(label="Import Batch as blendS", backgroundColor=buttonColor, w=winWidth, h=25, c=importBatchBS)
+    cmds.button(label="Import", backgroundColor=buttonColor, w=winWidth, h=25, c=importMaster)
 
     cmds.setParent(columnMain)
 
     cmds.frameLayout(label='Import Options', collapsable=False)
     cmds.columnLayout(rowSpacing=2)
+    
+    cmds.radioCollection('iRadio')
+    cmds.radioButton('iSingle', label='Single')
+    cmds.radioButton('iBatch', label='Batch', select=True)
+    cmds.radioButton('iBatchSingle', label='Batch on one geo')
+    cmds.radioButton('iBatchMultiple', label='Batch on multiple geo')
 
-    cmds.checkBox('importSingleChckB', label='Import as single geo', width=winWidth)
+    cmds.checkBox('importSingleChckB', label='Single geo OBSOLETE', width=winWidth)
     cmds.checkBox('deleteChckB', label='Delete History', width=winWidth)
+
+    cmds.button(label="TEST", backgroundColor=buttonColor, w=winWidth, h=25, c=queryIRadio)
 
     # Export section
     cmds.setParent(columnMain)
@@ -515,7 +508,6 @@ def buildUI():
 
 def testCheckboxes():
     """Check state of UI checkboxes
-
             Returns:
                 importSingleChckV (bool): value of Import as single geometry checkbox
                 deleteCHChckV (bool): value of Delete History checkbox
@@ -531,10 +523,14 @@ def testCheckboxes():
 
     return importSingleChckV, deleteCHChckV, exportSingleChckV, forceOverwriteChckV
 
+def queryIRadio(*args):
+    selectedRadio = cmds.radioCollection('iRadio', query=True, select=True)
+    
+    return selectedRadio
+
 
 def help(*args):
     """Open URL with documentation
-
              Returns:
                  __documentation__ (string): variable value
      """
@@ -545,7 +541,6 @@ def help(*args):
 
 def showUI():
     """Show toolkit UI, function called from Maya
-
         Returns:
             windowName (str): name of a toolkit window passed to Maya
     """
@@ -556,12 +551,8 @@ def showUI():
     if cmds.window(windowName, query=True, exists=True):
         cmds.deleteUI(windowName)
 
-    # Load OBJ plugin
-
-    cmds.loadPlugin('objExport.bundle', qt=True)
-
     # Create window
-    cmds.window(windowName, title="JJ OBJ Toolkit", sizeable=False)
+    cmds.window(windowName, title="JJ OBJ Toolkit", sizeable=False, tlb=True)
 
     # Build UI
     winWidth, winHeight = buildUI()
