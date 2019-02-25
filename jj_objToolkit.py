@@ -357,7 +357,7 @@ def importBatchBSs(*args):
                 cmds.delete(objGroup)
                 cmds.select(blendS)
 
-                print "%s OBJs imported. %s OBJs blend shaped." % (len(newGeos), len(validGeos)-1),
+                print "%s OBJs imported. %s OBJs blend shaped." % (len(newGeos), len(validGeos) - 1),
             else:
                 print "%s OBJs imported. %s OBJs blend shaped." % (len(newGeos), len(validGeos)),
 
@@ -425,8 +425,8 @@ def importBatchBS(*args):
 
     return newGeos, objGroup, blendSList, bSControlLoc
 
-def importMaster(*args):
 
+def importMaster(*args):
     if queryIRadio() == 'iSingle':
         importObj(4, True)
 
@@ -460,24 +460,23 @@ def buildUI():
     cmds.setParent(columnMain)
 
     cmds.frameLayout(label='Import Options', collapsable=False)
+
     cmds.columnLayout(rowSpacing=2)
-    
     cmds.radioCollection('iRadio')
     cmds.radioButton('iSingle', label='Single')
     cmds.radioButton('iBatch', label='Batch', select=True)
     cmds.radioButton('iBatchSingle', label='Batch on one geo')
     cmds.radioButton('iBatchMultiple', label='Batch on multiple geo')
 
+    cmds.columnLayout(rowSpacing=2)
     cmds.checkBox('importSingleChckB', label='Single geo OBSOLETE', width=winWidth)
     cmds.checkBox('deleteChckB', label='Delete History', width=winWidth)
-
-    cmds.button(label="TEST", backgroundColor=buttonColor, w=winWidth, h=25, c=queryIRadio)
 
     # Export section
     cmds.setParent(columnMain)
 
     cmds.frameLayout(label='Export OBJ', backgroundColor=mainColor, collapsable=False)
-    cmds.columnLayout(rowSpacing=2)
+    cmds.columnLayout(rowSpacing=10)
 
     cmds.button(label="Export", backgroundColor=buttonColor, w=winWidth, h=25, c=exportObj)
 
@@ -523,9 +522,10 @@ def testCheckboxes():
 
     return importSingleChckV, deleteCHChckV, exportSingleChckV, forceOverwriteChckV
 
+
 def queryIRadio(*args):
     selectedRadio = cmds.radioCollection('iRadio', query=True, select=True)
-    
+
     return selectedRadio
 
 
