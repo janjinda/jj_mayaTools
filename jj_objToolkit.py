@@ -2,19 +2,30 @@
 JJ Obj Toolkit is a set of simple scripts tailored to provide clean, easier and more effective
 workflow for handling OBJ files in Maya. Thanks to the Import as blend shape options it keeps all your scene
 hierarchy, geometry UVs, shader assignments etc.
+
+
 Installation
 ============
 Copy jj_objToolkit.py from the zip file to your scripts folder. Usually at these locations ():
+
+
 Windows - \<user's directory>\My Documents/Maya\<version>\scripts
+
 MacOs - /Users/<user's directory>/Library/Preferences/Autodesk/maya/<version>/scripts
+
 Linux - $MAYA_APP_DIR/Maya/<version>/scripts
+
+
 Run following script or make a shelf button with following script.
+
+
 import jj_objToolkit
 jj_objToolkit.showUI()
+
 """
 
 __author__ = "Jan Jinda"
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 __documentation__ = "https://janjinda.artstation.com/pages/jj-obj-toolkit-doc"
 __email__ = "janjinda@janjinda.com"
 __website__ = "http://janjinda.com"
@@ -53,7 +64,7 @@ def dialog(dupCheck, diaCaption, fileMode, okCaption):
     return dialogOut
 
 
-def importObj(fileMode, combine, *args):
+def importObj(fileMode, *args):
     """Main import function available for a user, removes all unnecessary nodes
     Parameters:
         fileMode (int): passes fileMode to a dialog function
@@ -122,7 +133,7 @@ def importObj(fileMode, combine, *args):
         cmds.parent(newGeos, objGroup)
 
         # Check if OBJs should be combined
-        if combine and len(newGeos) > 1:
+        if queryIRadio == 'iSingle' and len(newGeos) > 1:
             # Combine new geometries and parent result under OBJ_import_*_grp
             combinedGeo = cmds.polyUnite(newGeos, mergeUVSets=True, name="%s_X" % newGeos[0])[0]
             cmds.parent(combinedGeo, objGroup)
@@ -150,13 +161,13 @@ def exportObj(*args):
     # Check if at least one geometry is selected
     if len(selection) != 0:
         # Check export mode
-        if testCheckboxes()[2]:
+        if queryERadio() == 'eSingle':
             diaCaption = 'Single'
         else:
             diaCaption = 'Batch'
 
         # Check Force overwrite checkbox
-        if testCheckboxes()[3]:
+        if queryCheckboxes()[1]:
             pmt = False
             force = True
         else:
@@ -178,7 +189,7 @@ def exportObj(*args):
                     validGeos.append(ii)
 
             # Check if just single file should be exported
-            if testCheckboxes()[2]:
+            if queryERadio() == 'eSingle':
                 # Single export
                 cmds.file('%s/%s.%s' % (dialogOut, validGeos[0], 'obj'), force=False,
                           options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1',
@@ -250,7 +261,7 @@ def bSControlCreate(blendSList, origGeoList, *args):
     bsControlAttr = None
 
     # Check if Delete history option is checked
-    if not testCheckboxes()[1]:
+    if not queryCheckboxes()[0]:
         # Create locator and list all keyable attributes
         bSControlLoc = cmds.spaceLocator(n="bShape_ctrl")[0]
         availableAttrs = cmds.listAttr(bSControlLoc, keyable=True)
@@ -276,53 +287,7 @@ def bSControlCreate(blendSList, origGeoList, *args):
     return bSControlLoc, bsControlAttr
 
 
-def importSingleBS(*args):
-    """Available for a user for importing single OBJ as a blend shape to an existing geometry
-        Returns:
-            newGeos (list): list of all new imported geometries
-            blendSList (list): list of all created blend shapes
-            bSControlLoc(str): name of a created blend shapes controller
-    """
-
-    # Empty variables as they are returned at the end, store selection
-    origGeos = cmds.ls(selection=True)
-    blendSList = []
-    bSControlLoc = None
-    newGeos = []
-
-    # Find if one geometry is selected
-    if len(origGeos) == 1:
-        # Run importSingle function
-        newGeos, objGroup = importObj(1)
-
-        if newGeos:
-            # Define source and target for a blend shape
-            source = newGeos[0]
-            target = origGeos[0]
-
-            # Check if source and target have same vertex count
-            if cmds.polyEvaluate(source, v=True) == cmds.polyEvaluate(target, v=True):
-                # Create a blend shape and locator if required
-                blendSList = [bSCreate(source=source, target=target)]
-                bSControlLoc = bSControlCreate(blendSList=blendSList, origGeoList=origGeos[0])[0]
-                cmds.select(bSControlLoc)
-
-            if not cmds.listRelatives(objGroup):
-                cmds.delete(objGroup)
-
-            if bSControlLoc:
-                print "%s OBJs imported. %s OBJs blend shaped. bs_ctrl created." % \
-                      (len(newGeos), len(blendSList)),
-            else:
-                print "%s OBJs imported. %s OBJs blend shaped. History deleted." % (len(newGeos), len(blendSList)),
-
-    else:
-        cmds.warning("Please select one geometry.")
-
-    return newGeos, blendSList, bSControlLoc
-
-
-def importBatchBSs(*args):
+def importBSOnSingle(*args):
     """Available for a user for importing single OBJ as a blend shape to an existing geometry
         Returns:
             newGeos (list): list of all new imported geometries
@@ -434,7 +399,7 @@ def importMaster(*args):
         importObj(4, False)
 
     if queryIRadio() == 'iBatchSingle':
-        importBatchBSs()
+        importBSOnSingle()
 
     if queryIRadio() == 'iBatchMultiple':
         importBatchBS()
@@ -469,7 +434,6 @@ def buildUI():
     cmds.radioButton('iBatchMultiple', label='Batch on multiple geo')
 
     cmds.columnLayout(rowSpacing=2)
-    cmds.checkBox('importSingleChckB', label='Single geo OBSOLETE', width=winWidth)
     cmds.checkBox('deleteChckB', label='Delete History', width=winWidth)
 
     # Export section
@@ -483,9 +447,13 @@ def buildUI():
     cmds.setParent(columnMain)
 
     cmds.frameLayout(label='Export Options', collapsable=False)
+    
     cmds.columnLayout(rowSpacing=2)
+    cmds.radioCollection('eRadio')
+    cmds.radioButton('eSingle', label='Single')
+    cmds.radioButton('eBatch', label='Batch', select=True)
 
-    cmds.checkBox('exportSingleChckB', label='Export as single OBJ', width=winWidth)
+    cmds.columnLayout(rowSpacing=2)
     cmds.checkBox('forceOverwriteChckB', label='Force overwrite', width=winWidth)
 
     cmds.setParent(columnMain)
@@ -505,7 +473,7 @@ def buildUI():
     return winWidth, winHeight
 
 
-def testCheckboxes():
+def queryCheckboxes():
     """Check state of UI checkboxes
             Returns:
                 importSingleChckV (bool): value of Import as single geometry checkbox
@@ -514,17 +482,19 @@ def testCheckboxes():
                 forceOverwriteChckV (bool): value of Force overwrite checkbox
     """
 
-    importSingleChckV = cmds.checkBox('importSingleChckB', query=True, value=True)
     deleteCHChckV = cmds.checkBox('deleteChckB', query=True, value=True)
-
-    exportSingleChckV = cmds.checkBox('exportSingleChckB', query=True, value=True)
     forceOverwriteChckV = cmds.checkBox('forceOverwriteChckB', query=True, value=True)
 
-    return importSingleChckV, deleteCHChckV, exportSingleChckV, forceOverwriteChckV
+    return deleteCHChckV, forceOverwriteChckV
 
 
 def queryIRadio(*args):
     selectedRadio = cmds.radioCollection('iRadio', query=True, select=True)
+
+    return selectedRadio
+
+def queryERadio(*args):
+    selectedRadio = cmds.radioCollection('eRadio', query=True, select=True)
 
     return selectedRadio
 
