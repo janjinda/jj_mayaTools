@@ -25,14 +25,13 @@ jj_objToolkit.showUI()
 """
 
 __author__ = "Jan Jinda"
-__version__ = "1.0.4"
+__version__ = "1.0.5"
 __documentation__ = "https://janjinda.artstation.com/pages/jj-obj-toolkit-doc"
 __email__ = "janjinda@janjinda.com"
 __website__ = "http://janjinda.com"
 
 import maya.cmds as cmds
 import re
-from functools import partial
 
 
 def dialog(dupCheck, diaCaption, fileMode, okCaption):
@@ -270,7 +269,7 @@ def bSControlCreate(blendSList, origGeoList, *args):
         for i in availableAttrs:
             cmds.setAttr('%s.%s' % (bSControlLoc, i), lock=True, keyable=False)
 
-        # Create custom attritube on the locator
+        # Create custom attribute on the locator
         bsControlAttr = cmds.addAttr(bSControlLoc, shortName='bsAmount', longName='Blend_Shapes_Amount',
                                      defaultValue=1.0,
                                      minValue=0, maxValue=1, keyable=True)
@@ -428,10 +427,10 @@ def buildUI():
 
     cmds.columnLayout(rowSpacing=2)
     cmds.radioCollection('iRadio')
-    cmds.radioButton('iSingle', label='Single')
     cmds.radioButton('iBatch', label='Batch', select=True)
-    cmds.radioButton('iBatchSingle', label='Batch on one geo')
-    cmds.radioButton('iBatchMultiple', label='Batch on multiple geo')
+    cmds.radioButton('iBatchSingle', label='Batch blendS on one geo')
+    cmds.radioButton('iBatchMultiple', label='Batch blendS on multiple geo')
+    cmds.radioButton('iSingle', label='Combined')
 
     cmds.columnLayout(rowSpacing=2)
     cmds.checkBox('deleteChckB', label='Delete History', width=winWidth)
@@ -450,8 +449,8 @@ def buildUI():
     
     cmds.columnLayout(rowSpacing=2)
     cmds.radioCollection('eRadio')
-    cmds.radioButton('eSingle', label='Single')
     cmds.radioButton('eBatch', label='Batch', select=True)
+    cmds.radioButton('eSingle', label='Combined')
 
     cmds.columnLayout(rowSpacing=2)
     cmds.checkBox('forceOverwriteChckB', label='Force overwrite', width=winWidth)
@@ -492,6 +491,7 @@ def queryIRadio(*args):
     selectedRadio = cmds.radioCollection('iRadio', query=True, select=True)
 
     return selectedRadio
+
 
 def queryERadio(*args):
     selectedRadio = cmds.radioCollection('eRadio', query=True, select=True)
