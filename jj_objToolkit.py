@@ -2,26 +2,15 @@
 JJ Obj Toolkit is a set of simple scripts tailored to provide clean, easier and more effective
 workflow for handling OBJ files in Maya. Thanks to the Import as blend shape options it keeps all your scene
 hierarchy, geometry UVs, shader assignments etc.
-
-
 Installation
 ============
 Copy jj_objToolkit.py from the zip file to your scripts folder. Usually at these locations ():
-
-
 Windows - \<user's directory>\My Documents/Maya\<version>\scripts
-
 MacOs - /Users/<user's directory>/Library/Preferences/Autodesk/maya/<version>/scripts
-
 Linux - $MAYA_APP_DIR/Maya/<version>/scripts
-
-
 Run following script or make a shelf button with following script.
-
-
 import jj_objToolkit
 jj_objToolkit.showUI()
-
 """
 
 __author__ = "Jan Jinda"
@@ -410,26 +399,22 @@ def buildUI():
     # UI variables
     mainColor = [0.33, 0.58, 0.63]
     buttonColor = [0.45, 0.45, 0.45]
-    winWidth = 150
+    winWidth = 160
     winHeight = 360
 
-    columnMain = cmds.columnLayout(rowSpacing=10)
+    columnMain = cmds.columnLayout()
 
     # Import section
-    cmds.frameLayout(label='Import OBJ', backgroundColor=mainColor, collapsable=False)
+    cmds.frameLayout(label='Import OBJ', backgroundColor=mainColor, marginHeight=3)
+    cmds.button(label="Import", backgroundColor=buttonColor, h=25, c=importMaster)
+
+    cmds.frameLayout(label='Import Options')
     cmds.columnLayout(rowSpacing=2)
 
-    cmds.button(label="Import", backgroundColor=buttonColor, w=winWidth, h=25, c=importMaster)
-
-    cmds.setParent(columnMain)
-
-    cmds.frameLayout(label='Import Options', collapsable=False)
-
-    cmds.columnLayout(rowSpacing=2)
     cmds.radioCollection('iRadio')
     cmds.radioButton('iBatch', label='Batch', select=True)
-    cmds.radioButton('iBatchSingle', label='Batch blendS on one geo')
-    cmds.radioButton('iBatchMultiple', label='Batch blendS on multiple geo')
+    cmds.radioButton('iBatchSingle', label='Batch blendS on Single')
+    cmds.radioButton('iBatchMultiple', label='Batch blendS on Multiple')
     cmds.radioButton('iSingle', label='Combined')
 
     cmds.columnLayout(rowSpacing=2)
@@ -438,16 +423,12 @@ def buildUI():
     # Export section
     cmds.setParent(columnMain)
 
-    cmds.frameLayout(label='Export OBJ', backgroundColor=mainColor, collapsable=False)
-    cmds.columnLayout(rowSpacing=10)
+    cmds.frameLayout(label='Export OBJ', backgroundColor=mainColor, marginHeight=3)
+    cmds.button(label="Export", backgroundColor=buttonColor, h=25, c=exportObj)
 
-    cmds.button(label="Export", backgroundColor=buttonColor, w=winWidth, h=25, c=exportObj)
-
-    cmds.setParent(columnMain)
-
-    cmds.frameLayout(label='Export Options', collapsable=False)
-    
+    cmds.frameLayout(label='Export Options')
     cmds.columnLayout(rowSpacing=2)
+ 
     cmds.radioCollection('eRadio')
     cmds.radioButton('eBatch', label='Batch', select=True)
     cmds.radioButton('eSingle', label='Combined')
@@ -455,13 +436,11 @@ def buildUI():
     cmds.columnLayout(rowSpacing=2)
     cmds.checkBox('forceOverwriteChckB', label='Force overwrite', width=winWidth)
 
+    # Footer section
     cmds.setParent(columnMain)
 
     cmds.columnLayout(rowSpacing=2)
     cmds.button(label='Help', width=winWidth, c=help)
-
-    # Footer section
-    cmds.setParent(columnMain)
 
     cmds.rowColumnLayout(numberOfColumns=2, columnWidth=[(1, (winWidth / 2)), (2, (winWidth / 2))])
     cmds.text(label=__author__, align='left')
