@@ -2,19 +2,25 @@
 JJ Obj Toolkit is a set of simple scripts tailored to provide clean, easier and more effective
 workflow for handling OBJ files in Maya. Thanks to the Import as blend shape options it keeps all your scene
 hierarchy, geometry UVs, shader assignments etc.
+
 Installation
 ============
+
 Copy jj_objToolkit.py from the zip file to your scripts folder. Usually at these locations ():
+
 Windows - \<user's directory>\My Documents/Maya\<version>\scripts
 MacOs - /Users/<user's directory>/Library/Preferences/Autodesk/maya/<version>/scripts
 Linux - $MAYA_APP_DIR/Maya/<version>/scripts
+
 Run following script or make a shelf button with following script.
+
 import jj_objToolkit
 jj_objToolkit.showUI()
+
 """
 
 __author__ = "Jan Jinda"
-__version__ = "1.0.5"
+__version__ = "1.0.6"
 __documentation__ = "https://janjinda.artstation.com/pages/jj-obj-toolkit-doc"
 __email__ = "janjinda@janjinda.com"
 __website__ = "http://janjinda.com"
@@ -22,42 +28,41 @@ __website__ = "http://janjinda.com"
 import maya.cmds as cmds
 import re
 
+from functools import partial
 
-def dialog(dupCheck, diaCaption, fileMode, okCaption):
-    """Opens an file dialog set up based on given parameters
-    Parameters:
-        dupCheck (boll):
-        diaCaption (str): dialog window caption
-        fileMode (int): defines dialog behaviour
-                        0 Any file, whether it exists or not
-                        1 A single existing file
-                        2 The name of a directory. Both directories and files are displayed in the dialog
-                        3 The name of a directory. Only directories are displayed in the dialog
-                        4 Then names of one or more existing files
-        okCaption (str): caption of the OK button
-    Returns:
-        dialogOut (list): output selection from a dialog
+
+def iMaster(*args):
+    """Running import functions based on selected radio button
+        Returns:
+            importCmd (string): called command
     """
+    importCmd = None
 
-    # If there are geometries with the same name give warning
-    if dupCheck and duplicateCheck():
-        dialogOut = None
-        cmds.warning("There are multiple geometries with the same name. This should be fixed first."),
+    if queryIRadio() == 'iBatch':
+        iGeo(4, False)
+        importCmd = 'iBatch'
 
-    else:
-        # Store dialog output to a variable
-        dialogOut = cmds.fileDialog2(fileMode=fileMode, caption=diaCaption, okCaption=okCaption,
-                                     dialogStyle=2, fileFilter="Waveform OBJ (*.obj *.OBJ)")
+    if queryIRadio() == 'iBSOnSingle':
+        iBSOnSingle()
+        importCmd = 'iBSOnSingle'
 
-    return dialogOut
+    if queryIRadio() == 'iBSOnMultiple':
+        iBSOnMultiple()
+        importCmd = 'iBSOnMultiple'
+
+    if queryIRadio() == 'iCombine':
+        iGeo(4, True)
+        importCmd = 'iCombine'
+
+    return importCmd
 
 
-def importObj(fileMode, *args):
-    """Main import function available for a user, removes all unnecessary nodes
-    Parameters:
-        fileMode (int): passes fileMode to a dialog function
-    Returns:
-        newGeo (str): newly imported geometry
+def iGeo(fileMode, *args):
+    """Main import function, removes all unnecessary nodes
+        Parameters:
+            fileMode (int): passes fileMode to a dialog function
+        Returns:
+            newGeo (str): newly imported geometry
     """
 
     # Empty variables as they are returned at the end
@@ -121,7 +126,7 @@ def importObj(fileMode, *args):
         cmds.parent(newGeos, objGroup)
 
         # Check if OBJs should be combined
-        if queryIRadio == 'iSingle' and len(newGeos) > 1:
+        if queryIRadio() == 'iCombine' and len(newGeos) > 1:
             # Combine new geometries and parent result under OBJ_import_*_grp
             combinedGeo = cmds.polyUnite(newGeos, mergeUVSets=True, name="%s_X" % newGeos[0])[0]
             cmds.parent(combinedGeo, objGroup)
@@ -136,10 +141,10 @@ def importObj(fileMode, *args):
     return newGeos, objGroup
 
 
-def exportObj(*args):
-    """Main import function available for a user
-    Returns:
-        validGeos (list): list of all exported geometries
+def eGeo(*args):
+    """Main export function
+        Returns:
+            validGeos (list): list of all exported geometries
     """
 
     # Empty variable as they are returned at the end, store selection
@@ -149,13 +154,13 @@ def exportObj(*args):
     # Check if at least one geometry is selected
     if len(selection) != 0:
         # Check export mode
-        if queryERadio() == 'eSingle':
-            diaCaption = 'Single'
+        if queryERadio() == 'eCombine':
+            diaCaption = 'Combined'
         else:
             diaCaption = 'Batch'
 
         # Check Force overwrite checkbox
-        if queryCheckboxes()[1]:
+        if queryEChckB():
             pmt = False
             force = True
         else:
@@ -163,7 +168,7 @@ def exportObj(*args):
             force = False
 
         # Open dialog and store it's output
-        dialogOut = dialog(dupCheck=False, fileMode=2, diaCaption="%s OBJ Export" % diaCaption, okCaption="Export")
+        dialogOut = dialog(dupCheck=True, fileMode=2, diaCaption="%s OBJ Export" % diaCaption, okCaption="Export")
 
         if dialogOut:
             dialogOut = dialogOut[0]
@@ -174,10 +179,11 @@ def exportObj(*args):
 
                 # List valid geometries
                 for ii in allMeshes:
-                    validGeos.append(ii)
+                    # Long name to be stored in valid geos?
+                    validGeos.append(i)
 
             # Check if just single file should be exported
-            if queryERadio() == 'eSingle':
+            if queryERadio() == 'eCombine':
                 # Single export
                 cmds.file('%s/%s.%s' % (dialogOut, validGeos[0], 'obj'), force=False,
                           options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1',
@@ -204,96 +210,25 @@ def exportObj(*args):
     return validGeos
 
 
-def duplicateCheck():
-    """Main export function
-     Returns:
-         dupExists (bool): result of the check
-     """
-
-    # Check if there is duplicate geometry based on mayas long name
-    sceneMeshes = cmds.listRelatives(cmds.ls(type='mesh'), parent=True)
-    dupExists = any('|' in i for i in sceneMeshes)
-
-    return dupExists
-
-
-def bSCreate(source, target):
-    """Creates blend shape deformer
-        Parameters:
-            source (list): blend shape source geometry
-            target (str): blend shape target geometry
-        Returns:
-            blendS (str): name of a created blend shape deformer
-    """
-
-    # Create blend shape between source and target
-    blendS = cmds.blendShape(source, target)[0]
-    cmds.setAttr('%s.%s' % (blendS, source), 1)
-    cmds.delete(source)
-
-    return blendS
-
-
-def bSControlCreate(blendSList, origGeoList, *args):
-    """Creates locator with an attribute for controlling all created blend shapes
-        Parameters:
-            blendSList (list): list of all created blend shapes
-            origGeoList (list): list of all geometries which were blend shaped
-        Returns:
-            bSControlLoc (str): name of a created locator
-            bsControlAttr (str): name of a created custom attribute
-    """
-
-    # Empty variables as they are returned at the end
-    bSControlLoc = None
-    bsControlAttr = None
-
-    # Check if Delete history option is checked
-    if not queryCheckboxes()[0]:
-        # Create locator and list all keyable attributes
-        bSControlLoc = cmds.spaceLocator(n="bShape_ctrl")[0]
-        availableAttrs = cmds.listAttr(bSControlLoc, keyable=True)
-
-        # Lock all keyable attributes
-        for i in availableAttrs:
-            cmds.setAttr('%s.%s' % (bSControlLoc, i), lock=True, keyable=False)
-
-        # Create custom attribute on the locator
-        bsControlAttr = cmds.addAttr(bSControlLoc, shortName='bsAmount', longName='Blend_Shapes_Amount',
-                                     defaultValue=1.0,
-                                     minValue=0, maxValue=1, keyable=True)
-
-        # Connect all blend shapes to the custom attribute
-        for i in blendSList:
-            if i:
-                cmds.connectAttr('%s.bsAmount' % bSControlLoc, '%s.envelope' % i)
-
-    else:
-        # Delete history when control not created
-        cmds.delete(origGeoList, ch=True)
-
-    return bSControlLoc, bsControlAttr
-
-
-def importBSOnSingle(*args):
-    """Available for a user for importing single OBJ as a blend shape to an existing geometry
+def iBSOnSingle(*args):
+    """Importing OBJs as blend shape targets on one selected geometry
         Returns:
             newGeos (list): list of all new imported geometries
-            blendSList (list): list of all created blend shapes
-            bSControlLoc(str): name of a created blend shapes controller
+            bSList (list): list of all created blend shapes
+            bSCtrlLoc(str): name of a created blend shapes controller
     """
 
     # Empty variables as they are returned at the end, store selection
     origGeos = cmds.ls(selection=True)
-    blendSList = []
-    bSControlLoc = None
+    bSList = []
+    bSCtrlLoc = None
     newGeos = []
     validGeos = []
 
     # Find if one geometry is selected
     if len(origGeos) == 1:
-        # Run importSingle function
-        newGeos, objGroup = importObj(4)
+        # Run iGeo function
+        newGeos, objGroup = iGeo(4)
         target = origGeos[0]
         if newGeos:
             # Define source and target for a blend shape
@@ -304,11 +239,11 @@ def importBSOnSingle(*args):
             # Check if source and target have same vertex count
             if validGeos:
                 validGeos.append(target)
-                blendS = cmds.blendShape(validGeos)
-                blendSList.append(blendS)
+                bS = cmds.blendShape(validGeos)
+                bSList.append(bS)
 
                 cmds.delete(objGroup)
-                cmds.select(blendS)
+                cmds.select(bS)
 
                 print "%s OBJs imported. %s OBJs blend shaped." % (len(newGeos), len(validGeos) - 1),
             else:
@@ -317,31 +252,30 @@ def importBSOnSingle(*args):
     else:
         cmds.warning("Please select one geometry.")
 
-    return newGeos, blendSList
+    return newGeos, bSList
 
 
-def importBatchBS(*args):
-    """Available for a user for importing multiple OBJ as a blend shape to an existing corresponding geometries
+def iBSOnMultiple(*args):
+    """Importing multiple OBJs as a blend shape to an existing corresponding geometries
         Returns:
             newGeos (list): list of all new imported geometries
-            blendSList (list): list of all created blend shapes
-            bSControlLoc(str): name of a created blend shapes controller
+            bSList (list): list of all created blend shapes
+            bSCtrlLoc(str): name of a created blend shapes controller
     """
 
     # Empty variables as they are returned at the end, import OBJs and store all geometries in the scene
     sceneGeos = [x.encode('UTF8') for x in cmds.listRelatives(cmds.ls(type='mesh'), parent=True)]
     validGeos = []
-    newGeos, objGroup = importObj(4)
-    nonBlendS = []
-    blendSList = []
-    bSControlLoc = None
+    newGeos, objGroup = iGeo(4)
+    nonBS = []
+    bSList = []
+    bSCtrlLoc = None
 
     # Convert lists to dictionary with matching lowercase names
     sceneGeos = {i: i.lower() for i in sceneGeos}
 
     if newGeos:
         for source in newGeos:
-
             sourceLwr = source.lower()
             sourceLwr = sourceLwr.encode('UTF8')
             targetLwr = sourceLwr.replace('_obj', '')
@@ -349,52 +283,206 @@ def importBatchBS(*args):
             # Check if imported OBJ name matches with any geometry in the scene
             if targetLwr in sceneGeos.values():
                 target = sceneGeos.keys()[sceneGeos.values().index(targetLwr)]
+
                 # Check if source and target have same vertex count
                 if cmds.polyEvaluate(source, v=True) == cmds.polyEvaluate(target, v=True):
                     validGeos.append(target)
 
                     # Create a blend shape
-                    blendS = bSCreate(source=source, target=target)
-                    blendSList.append(blendS)
+                    bS = bSCreate(source=source, target=target)
+                    bSList.append(bS)
 
                 else:
-                    nonBlendS.append(source)
+                    nonBS.append(source)
 
             else:
-                nonBlendS.append(source)
+                nonBS.append(source)
 
         # Create a locator
-        if blendSList:
-            bSControlLoc = bSControlCreate(blendSList=blendSList, origGeoList=validGeos)[0]
+        if bSList:
+            bSCtrlLoc = bSCtrlCreate(bSList=bSList, origGeoList=validGeos)[0]
 
         if not cmds.listRelatives(objGroup):
             cmds.delete(objGroup)
 
-        if bSControlLoc:
+        if bSCtrlLoc:
             print "%s OBJs imported. %s OBJs blend shaped. bs_ctrl created." % \
-                  (len(newGeos), len(blendSList)),
+                  (len(newGeos), len(bSList)),
         else:
-            print "%s OBJs imported. %s OBJs blend shaped. History deleted." % (len(newGeos), len(blendSList)),
+            print "%s OBJs imported. %s OBJs blend shaped. History deleted." % (len(newGeos), len(bSList)),
 
-    return newGeos, objGroup, blendSList, bSControlLoc
+    return newGeos, objGroup, bSList, bSCtrlLoc
 
 
-def importMaster(*args):
-    if queryIRadio() == 'iSingle':
-        importObj(4, True)
+def bSCreate(source, target):
+    """Creates blend shape deformer
+        Parameters:
+            source (list): blend shape source geometry
+            target (str): blend shape target geometry
+        Returns:
+            bS (str): name of a created blend shape deformer
+    """
 
-    if queryIRadio() == 'iBatch':
-        importObj(4, False)
+    # Create blend shape between source and target
+    bS = cmds.blendShape(source, target)[0]
+    cmds.setAttr('%s.%s' % (bS, source), 1)
+    cmds.delete(source)
 
-    if queryIRadio() == 'iBatchSingle':
-        importBSOnSingle()
+    return bS
 
-    if queryIRadio() == 'iBatchMultiple':
-        importBatchBS()
+
+def bSCtrlCreate(bSList, origGeoList, *args):
+    """Creates locator with an attribute for controlling all created blend shapes
+        Parameters:
+            bSList (list): list of all created blend shapes
+            origGeoList (list): list of all geometries which were blend shaped
+        Returns:
+            bSCtrlLoc (str): name of a created locator
+            bSCtrlAttr (str): name of a created custom attribute
+    """
+
+    # Empty variables as they are returned at the end
+    bSCtrlLoc = None
+    bSCtrlAttr = None
+
+    # Check if Delete history option is checked
+    if not queryIChckB():
+        # Create locator and list all keyable attributes
+        bSCtrlLoc = cmds.spaceLocator(n="bShape_ctrl")[0]
+        availableAttrs = cmds.listAttr(bSCtrlLoc, keyable=True)
+
+        # Lock all keyable attributes
+        for i in availableAttrs:
+            cmds.setAttr('%s.%s' % (bSCtrlLoc, i), lock=True, keyable=False)
+
+        # Create custom attribute on the locator
+        bSCtrlAttr = cmds.addAttr(bSCtrlLoc, shortName='bsAmount', longName='Blend_Shapes_Amount',
+                                     defaultValue=1.0,
+                                     minValue=0, maxValue=1, keyable=True)
+
+        # Connect all blend shapes to the custom attribute
+        for i in bSList:
+            if i:
+                cmds.connectAttr('%s.bsAmount' % bSCtrlLoc, '%s.envelope' % i)
+
+    else:
+        # Delete history when control not created
+        cmds.delete(origGeoList, ch=True)
+
+    return bSCtrlLoc, bSCtrlAttr
+
+
+def dialog(dupCheck, diaCaption, fileMode, okCaption):
+    """Opens an file dialog set up based on given parameters
+    Parameters:
+        dupCheck (boll):
+        diaCaption (str): dialog window caption
+        fileMode (int): defines dialog behaviour
+                        0 Any file, whether it exists or not
+                        1 A single existing file
+                        2 The name of a directory. Both directories and files are displayed in the dialog
+                        3 The name of a directory. Only directories are displayed in the dialog
+                        4 Then names of one or more existing files
+        okCaption (str): caption of the OK button
+    Returns:
+        dialogOut (list): output selection from a dialog
+    """
+    dupExists, duplicateMeshes = duplicateCheck()
+    # If there are geometries with the same name give warning
+    if dupCheck and dupExists:
+        dialogOut = None
+        cmds.warning("There are multiple geometries with the same name. This should be fixed first. %s" % duplicateMeshes),
+
+    else:
+        # Store dialog output to a variable
+        dialogOut = cmds.fileDialog2(fileMode=fileMode, caption=diaCaption, okCaption=okCaption,
+                                     dialogStyle=2, fileFilter="Waveform OBJ (*.obj *.OBJ)")
+
+    return dialogOut
+
+
+def duplicateCheck(*args):
+    """Checks for name duplicates in a scene
+        Returns:
+            dupExists (bool): result of the check
+            duplicateMeshes (list): list of duplicate meshes
+
+     """
+
+    # Check if there is duplicate geometry based on mayas long name
+    sceneMeshes = cmds.listRelatives(cmds.ls(type='mesh'), parent=True)
+    duplicateMeshes = []
+    dupExists = None
+
+    for i in sceneMeshes:
+        if '|' in i or sceneMeshes.count(i) > 1:
+            dupExists = True
+            duplicateMeshes.append(i)
+        else:
+            dupExists = False
+
+    return dupExists, duplicateMeshes
+
+
+def queryIRadio(*args):
+    """Check which Import radio button is selected
+        Returns:
+            selectedIRadio (string): name of selected radio button
+    """
+    selectedIRadio = cmds.radioCollection('iRadio', query=True, select=True)
+
+    return selectedIRadio
+
+
+def queryERadio(*args):
+    """Check which Export radio button is selected
+            Returns:
+                selectedERadio (string): name of selected radio button
+    """
+    selectedERadio = cmds.radioCollection('eRadio', query=True, select=True)
+
+    return selectedERadio
+
+
+def queryIChckB():
+    """Check state of UI Import checkboxes
+            Returns:
+                deleteCHChckV (bool): value of Delete History checkbox
+    """
+
+    deleteChckB = cmds.checkBox('deleteChckB', query=True, value=True)
+
+    return deleteChckB
+
+
+def queryEChckB():
+    """Check state of UI Export checkboxes
+            Returns:
+                forceOverwriteChckV (bool): value of Force overwrite checkbox
+    """
+
+    forceOverwriteChckB = cmds.checkBox('forceOverwriteChckB', query=True, value=True)
+
+    return forceOverwriteChckB
+
+
+def deleteChckBEnable(state, *args):
+    """Check state of UI Export checkboxes
+            Returns:
+                forceOverwriteChckV (bool): value of Force overwrite checkbox
+    """
+    if state == 'True':    
+        cmds.checkBox('deleteChckB', edit=True, enable=True)
+    elif state == 'False':
+        cmds.checkBox('deleteChckB', edit=True, enable=False, value=False)
 
 
 def buildUI():
-    """Build toolkit UI"""
+    """Build toolkit UI
+            Returns:
+                winWidth (int): width of toolkit window in pixels
+                winHeight (int): heigth of toolkit window in pixels
+    """
 
     # UI variables
     mainColor = [0.33, 0.58, 0.63]
@@ -406,16 +494,16 @@ def buildUI():
 
     # Import section
     cmds.frameLayout(label='Import OBJ', backgroundColor=mainColor, marginHeight=3)
-    cmds.button(label="Import", backgroundColor=buttonColor, h=25, c=importMaster)
+    cmds.button(label="Import", backgroundColor=buttonColor, h=25, c=iMaster)
 
     cmds.frameLayout(label='Import Options')
     cmds.columnLayout(rowSpacing=2)
 
     cmds.radioCollection('iRadio')
     cmds.radioButton('iBatch', label='Batch', select=True)
-    cmds.radioButton('iBatchSingle', label='Batch blendS on Single')
-    cmds.radioButton('iBatchMultiple', label='Batch blendS on Multiple')
-    cmds.radioButton('iSingle', label='Combined')
+    cmds.radioButton('iBSOnSingle', label='Batch bS on Single', onc = partial(deleteChckBEnable, 'False'), ofc = partial(deleteChckBEnable, 'True'))
+    cmds.radioButton('iBSOnMultiple', label='Batch bS on Multiple')
+    cmds.radioButton('iCombine', label='Combined', onc = partial(deleteChckBEnable, 'False'), ofc = partial(deleteChckBEnable, 'True'))
 
     cmds.columnLayout(rowSpacing=2)
     cmds.checkBox('deleteChckB', label='Delete History', width=winWidth)
@@ -424,14 +512,14 @@ def buildUI():
     cmds.setParent(columnMain)
 
     cmds.frameLayout(label='Export OBJ', backgroundColor=mainColor, marginHeight=3)
-    cmds.button(label="Export", backgroundColor=buttonColor, h=25, c=exportObj)
+    cmds.button(label="Export", backgroundColor=buttonColor, h=25, c=eGeo)
 
     cmds.frameLayout(label='Export Options')
     cmds.columnLayout(rowSpacing=2)
  
     cmds.radioCollection('eRadio')
     cmds.radioButton('eBatch', label='Batch', select=True)
-    cmds.radioButton('eSingle', label='Combined')
+    cmds.radioButton('eCombine', label='Combined')
 
     cmds.columnLayout(rowSpacing=2)
     cmds.checkBox('forceOverwriteChckB', label='Force overwrite', width=winWidth)
@@ -441,6 +529,7 @@ def buildUI():
 
     cmds.columnLayout(rowSpacing=2)
     cmds.button(label='Help', width=winWidth, c=help)
+    cmds.button(label='TEST', width=winWidth, c=duplicateCheck)
 
     cmds.rowColumnLayout(numberOfColumns=2, columnWidth=[(1, (winWidth / 2)), (2, (winWidth / 2))])
     cmds.text(label=__author__, align='left')
@@ -449,33 +538,6 @@ def buildUI():
     cmds.text(label=('v%s' % __version__), align='right')
 
     return winWidth, winHeight
-
-
-def queryCheckboxes():
-    """Check state of UI checkboxes
-            Returns:
-                importSingleChckV (bool): value of Import as single geometry checkbox
-                deleteCHChckV (bool): value of Delete History checkbox
-                exportSingleChckV (bool): value of Export as single OBJ checkbox
-                forceOverwriteChckV (bool): value of Force overwrite checkbox
-    """
-
-    deleteCHChckV = cmds.checkBox('deleteChckB', query=True, value=True)
-    forceOverwriteChckV = cmds.checkBox('forceOverwriteChckB', query=True, value=True)
-
-    return deleteCHChckV, forceOverwriteChckV
-
-
-def queryIRadio(*args):
-    selectedRadio = cmds.radioCollection('iRadio', query=True, select=True)
-
-    return selectedRadio
-
-
-def queryERadio(*args):
-    selectedRadio = cmds.radioCollection('eRadio', query=True, select=True)
-
-    return selectedRadio
 
 
 def help(*args):
