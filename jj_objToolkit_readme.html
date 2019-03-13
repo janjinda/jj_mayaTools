@@ -3,39 +3,41 @@
 </div>
 <div class="site-content page">
 <div class="page-content-text container-sm section">
-<p><strong><em>Download</em></strong> -&nbsp;</p>
-<p><strong><em>Latest version</em></strong> - v1.0.0</p>
-<p><strong><em>Compatibility</em></strong> - Maya 2017, 2018</p>
+<p><strong><em>Download</em></strong>&nbsp;-&nbsp;<a href="https://gumroad.com/l/jj_obj_toolkit">https://gumroad.com/l/jj_obj_toolkit</a></p>
+<p><strong><em>Latest version</em></strong>&nbsp;- v1.1.0</p>
+<p><strong><em>Compatibility</em></strong>&nbsp;- Maya 2017, 2018</p>
 <p>This toolkit is a set of simple scripts tailored to provide clean, easier and more effective workflow for handling OBJ files in Maya. Thanks to the Import as blend shape options it keeps all your scene hierarchy, geometry UVs, shader assignments etc. It was intensively tested on projects like Pacific Rim: Uprising, Venom and lately Avengers: Endgame.</p>
 <h3>Installation</h3>
-<p>Copy&nbsp;jj_objToolkit.py&nbsp;from the zip file to your scripts folder. Usually at these locations ():</p>
+<p>Copy jj_objToolkit.py from the zip file to your scripts folder. Usually at these locations:</p>
 <ul>
 <li>
-<p><strong>Windows</strong> - <em>\&lt;user&rsquo;s directory&gt;\My Documents/Maya\&lt;version&gt;\scripts</em></p>
+<p><strong>Windows</strong>&nbsp;-&nbsp;<em>\&lt;user&rsquo;s directory&gt;\My Documents/Maya\&lt;version&gt;\scripts</em></p>
 </li>
 <li>
-<p><strong>MacOs</strong> - <em>/Users/&lt;user's directory&gt;/Library/Preferences/Autodesk/maya/&lt;version&gt;/scripts</em></p>
+<p><strong>MacOs</strong>&nbsp;-&nbsp;<em>/Users/&lt;user's directory&gt;/Library/Preferences/Autodesk/maya/&lt;version&gt;/scripts</em></p>
 </li>
 <li>
-<p><strong>Linux</strong> - <em>$MAYA_APP_DIR/Maya/&lt;version&gt;/scripts</em></p>
+<p><strong>Linux</strong>&nbsp;-&nbsp;<em>$MAYA_APP_DIR/Maya/&lt;version&gt;/scripts</em></p>
 </li>
 </ul>
-<p>Run following script or make a shelf button with following script (<a href="https://knowledge.autodesk.com/support/maya/learn-explore/caas/CloudHelp/cloudhelp/2016/ENU/Maya/files/GUID-527023AE-9FB5-4D01-8D29-075B1E6C4754-htm.html">How to make a shelf button</a>)</p>
-<pre>import jj_objToolkit
-jj_objToolkit.showUI()</pre>
-<h4>Import</h4>
-<p>Choose one or multiple OBJ files. All OBJS will be imported and grouped in OBJ_import_grp (unless Import as single geo is enabled). The script will name every geometry based on the file name free from all the clutter Maya usually imports with OBJs (shaders, shading groups, faceted normals, selection sets, etc.)</p>
-<h4>Import Single as blendS</h4>
+<p>Run following script or make a shelf button with following script (<a href="https://youtu.be/XO-DNzeYFTE">#3DQuickTips: Making a shelf button</a>)</p>
+<pre>import jj_objToolkit<br />jj_objToolkit.showUI()</pre>
+<h3>Import</h3>
+<h4>Batch</h4>
+<p>Choose one or multiple OBJ files. All OBJs will be imported and grouped in OBJ_import_grp. The script will name every geometry based on the file name free from all the clutter Maya usually imports with OBJs (shaders, shading groups, faceted normals, selection sets, etc.).</p>
+<h4>Batch blendS on Single</h4>
 <p>Select one geometry and choose an OBJ file which will be applied as a blend shape. A controller will be automatically created with a blend value attribute. If OBJ is not a valid geometry for a blend shape, it will be grouped to OBJ_import_grp.</p>
-<h4>Import Batch as blendS</h4>
+<h4>Batch blendS on Multiple</h4>
 <p>Choose the OBJ files which will be applied as blend shapes to corresponding geometries in the scene based on matching OBJ and geometry name. A controller will be automatically created with a blend value attribute. If OBJ is not a valid geometry for a blend shape, it will be grouped to OBJ_import_grp.</p>
+<h4>Combined</h4>
+<p>Choose one or multiple OBJ files. All OBJs will be imported and combined to a single geometry. The script will name the geometry based on first selected OBJ free from all the clutter Maya usually imports with OBJs.</p>
 <h4>Import Options</h4>
-<p><em><strong>Import as single geo</strong></em> - When enabled multiple OBJ files will be combined to a single geometry</p>
-<p>Delete history&nbsp;- When enabled, a blend shape controller will not be created and construction history will be deleted on blend shaped geometries</p>
-<h4>Export</h4>
-<p>Select one or multiple geometries or parent of the hierarchy. All selected geometries or geometries found in the hierarchy will be exported as individual OBJs (unless Export as single OBJ is enabled) and they will be corresponding to their geometry names.</p>
+<p><em><strong>Delete history</strong></em>&nbsp;- When enabled, a blend shape controller will not be created and construction history will be deleted on blend shaped geometries</p>
+<h3>Export</h3>
+<h4>Batch</h4>
+<p>Select one or multiple geometries or parent of the hierarchy. All selected geometries or geometries found in the hierarchy will be exported as individual OBJs and they will be corresponding to their geometry names.</p>
+<h4>Combined</h4>
+<p>Selected geometries or the hierarchy will be exported as a single OBJ file. It will be named after first selected geometry.</p>
 <h4>Export Options</h4>
-<p><strong><em>Export as single OBJ</em></strong> - When enabled, selected geometries or the hierarchy will be exported as a single OBJ file.</p>
-<p><strong><em>Force Overwrite</em></strong> - skips Maya's dialog when overwriting existing OBJ file.</p>
-</div>
-</div>
+<p><strong><em>Force overwrite</em></strong>&nbsp;- Skips Maya's dialog when overwriting existing OBJ file.</p>
+<p><strong><em>Ignore duplicate geos</em></strong>&nbsp;- When enabled Maya does not check for duplicate names in the scene. If duplicates are present in a scene, OBJ name will include entire hierarchy of the geometry.</p>
