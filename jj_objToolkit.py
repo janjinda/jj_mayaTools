@@ -522,8 +522,8 @@ def buildUI():
 
     cmds.radioCollection('iRadio')
     cmds.radioButton('iBatch', label='Batch', select=True)
-    cmds.radioButton('iBSOnSingle', label='Batch bS on Single', onc = partial(deleteChckBEnable, 'False'), ofc = partial(deleteChckBEnable, 'True'))
-    cmds.radioButton('iBSOnMultiple', label='Batch bS on Multiple')
+    cmds.radioButton('iBSOnSingle', label='Batch blendS on Single', onc = partial(deleteChckBEnable, 'False'), ofc = partial(deleteChckBEnable, 'True'))
+    cmds.radioButton('iBSOnMultiple', label='Batch blendS on Multiple')
     cmds.radioButton('iCombine', label='Combined', onc = partial(deleteChckBEnable, 'False'), ofc = partial(deleteChckBEnable, 'True'))
 
     cmds.columnLayout(rowSpacing=2)
