@@ -284,7 +284,7 @@ def iBSOnMultiple(*args):
     """
 
     # Empty variables as they are returned at the end, import OBJs and store all geometries in the scene
-    sceneGeos = [x.encode('UTF8') for x in cmds.listRelatives(cmds.ls(type='mesh'), parent=True)]
+    sceneGeos = [i.encode('UTF8') for i in cmds.listRelatives(cmds.ls(type='mesh'), parent=True)]
     validGeos = []
     newGeos, objGroup = iGeo(4, True)
     nonBS = []
@@ -429,21 +429,25 @@ def duplicateCheck(*args):
             duplicateMeshes (list): list of duplicate meshes
 
      """
-
-    # Check if there is duplicate geometry based on mayas long name
-    sceneMeshes = cmds.listRelatives(cmds.ls(type='mesh'), parent=True)
+    sceneMeshes = cmds.ls(type='mesh')
     duplicateMeshes = []
     dupExists = None
 
     if sceneMeshes:
         for i in sceneMeshes:
-            if '|' in i or sceneMeshes.count(i) > 1:
+            if sum(i.split('|')[-1] in ii for ii in sceneMeshes) > 1:
                 dupExists = True
-                duplicateMeshes.append(i)
+                iParent = cmds.listRelatives(i, parent=True)[0]
+                if iParent not in duplicateMeshes:
+                    duplicateMeshes.append(iParent.encode('UTF8'))
             else:
                 dupExists = False
 
     return dupExists, duplicateMeshes
+
+
+def test(*args):
+    print duplicateCheck()
 
 
 def queryIRadio(*args):
@@ -555,6 +559,7 @@ def buildUI():
 
     cmds.columnLayout(rowSpacing=2)
     cmds.button(label='Help', width=winWidth, c=help)
+    cmds.button(label='TEST', width=winWidth, c=test)
 
     cmds.rowColumnLayout(numberOfColumns=2, columnWidth=[(1, (winWidth / 2)), (2, (winWidth / 2))])
     cmds.text(label=__author__, align='left')

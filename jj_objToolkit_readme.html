@@ -5,7 +5,7 @@
 <p><strong><em>Latest version</em></strong>&nbsp;- v1.1.0</p>
 <p><strong><em>Compatibility</em></strong>&nbsp;- Maya 2017, 2018</p>
 <p>This toolkit is a set of simple scripts tailored to provide clean, easier and more effective workflow for handling OBJ files in Maya. Thanks to the Import as blend shape options it keeps all your scene hierarchy, geometry UVs, shader assignments etc. It was intensively tested on projects like Pacific Rim: Uprising, Venom and lately Avengers: Endgame.</p>
-<h3>Installation</h3>
+<h2>Installation</h2>
 <p>Copy jj_objToolkit.py from the zip file to your scripts folder. Usually at these locations:</p>
 <ul>
 <li>
@@ -20,6 +20,7 @@
 </ul>
 <p>Run following script or make a shelf button with following script (<a href="https://youtu.be/XO-DNzeYFTE">#3DQuickTips: Making a shelf button</a>)</p>
 <pre>import jj_objToolkit<br />jj_objToolkit.showUI()</pre>
+<h2>Usage</h2>
 <h3>Import</h3>
 <h4>Batch</h4>
 <p>Choose one or multiple OBJ files. All OBJs will be imported and grouped in OBJ_import_grp. The script will name every geometry based on the file name free from all the clutter Maya usually imports with OBJs (shaders, shading groups, faceted normals, selection sets, etc.).</p>
@@ -39,3 +40,12 @@
 <h4>Export Options</h4>
 <p><strong><em>Force overwrite</em></strong>&nbsp;- Skips Maya's dialog when overwriting existing OBJ file.</p>
 <p><strong><em>Ignore duplicate geos</em></strong>&nbsp;- When enabled Maya does not check for duplicate names in the scene. If duplicates are present in a scene, OBJ name will include entire hierarchy of the geometry.</p>
+<h2>Release Notes</h2>
+<h4>v1.1.0</h4>
+<ul>
+<li>Revamped and streamlined UI (radio buttons, different title bar, etc.)</li>
+<li>Batch blendS on Single now supports importing multiple OBJs as blend shape targets on one geometry.</li>
+<li>Batch blendS on Multiple is no longer case sensitive. ZBrush tends to mix with letter casing, this should solve most issues.</li>
+<li>Ignore duplicate geos added to export options as it was not previously possible to export geo, which shared a name with other geo in the scene.</li>
+<li>Other minor code tweaks.</li>
+</ul>
