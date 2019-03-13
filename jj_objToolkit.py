@@ -51,13 +51,13 @@ def iMaster(*args):
         importCmd = 'iBSOnMultiple'
 
     if queryIRadio() == 'iCombine':
-        iGeo(4, True)
+        iGeo(4, False)
         importCmd = 'iCombine'
 
     return importCmd
 
 
-def iGeo(fileMode, *args):
+def iGeo(fileMode, dupCheck, *args):
     """Main import function, removes all unnecessary nodes
         Parameters:
             fileMode (int): passes fileMode to a dialog function
@@ -68,9 +68,9 @@ def iGeo(fileMode, *args):
     # Empty variables as they are returned at the end
     newGeos = []
     objGroup = None
-
+    
     # Open dialog and store it's output
-    dialogOut = dialog(dupCheck=False, fileMode=fileMode, diaCaption="OBJ Import", okCaption="Import")
+    dialogOut = dialog(dupCheck=dupCheck, fileMode=fileMode, diaCaption="OBJ Import", okCaption="Import")
 
     if dialogOut:
 
@@ -160,18 +160,28 @@ def eGeo(*args):
             diaCaption = 'Batch'
 
         # Check Force overwrite checkbox
-        if queryEChckB():
+        if queryEChckB()[0]:
             pmt = False
             force = True
         else:
             pmt = True
             force = False
+        
+        # Check Ignore duplicate geo checkbox
+        if queryEChckB()[1]:
+            dupCheck=False
+        else:
+            dupCheck=True
 
         # Open dialog and store it's output
-        dialogOut = dialog(dupCheck=True, fileMode=2, diaCaption="%s OBJ Export" % diaCaption, okCaption="Export")
+        dialogOut = dialog(dupCheck=dupCheck, fileMode=2, diaCaption="%s OBJ Export" % diaCaption, okCaption="Export")
 
         if dialogOut:
             dialogOut = dialogOut[0]
+
+            # Run duplicateCheck and store into variables        
+            duplicateExists, duplicateMeshes = duplicateCheck()
+
             for i in selection:
                 # Store transforms of all selected geometries
                 allMeshes = cmds.listRelatives(cmds.listRelatives(i, allDescendents=True, type='mesh', path=True),
@@ -179,13 +189,15 @@ def eGeo(*args):
 
                 # List valid geometries
                 for ii in allMeshes:
-                    # Long name to be stored in valid geos?
-                    validGeos.append(i)
+                    # Storing long name in case there are duplicates
+                    validGeos.append(cmds.ls(i, long=True)[0])
 
             # Check if just single file should be exported
             if queryERadio() == 'eCombine':
                 # Single export
-                cmds.file('%s/%s.%s' % (dialogOut, validGeos[0], 'obj'), force=False,
+                i = validGeos[0].replace('|', '_')[1:]
+
+                cmds.file('%s/%s.%s' % (dialogOut, i, 'obj'), force=False,
                           options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1',
                           type='OBJexport', es=True, pmt=pmt, f=force)
 
@@ -196,6 +208,13 @@ def eGeo(*args):
                 # Batch export
                 for i in validGeos:
                     cmds.select(i, replace=True)
+                    
+                    if duplicateExists and i.split('|')[-1] in duplicateMeshes:
+                        i = i.replace('|', '_')[1:]
+                        
+                    else:
+                        i = i.split('|')[-1]
+
                     cmds.file('%s/%s.%s' % (dialogOut, i, 'obj'), force=False,
                               options='groups=1;ptgroups=1;materials=0;smoothing=1;normals=1',
                               type='OBJexport', es=True, pmt=pmt, f=force)
@@ -228,7 +247,7 @@ def iBSOnSingle(*args):
     # Find if one geometry is selected
     if len(origGeos) == 1:
         # Run iGeo function
-        newGeos, objGroup = iGeo(4)
+        newGeos, objGroup = iGeo(4, True)
         target = origGeos[0]
         if newGeos:
             # Define source and target for a blend shape
@@ -242,7 +261,7 @@ def iBSOnSingle(*args):
                 bS = cmds.blendShape(validGeos)
                 bSList.append(bS)
 
-                cmds.delete(objGroup)
+                cmds.delete(validGeos[:-1])
                 cmds.select(bS)
 
                 print "%s OBJs imported. %s OBJs blend shaped." % (len(newGeos), len(validGeos) - 1),
@@ -266,7 +285,7 @@ def iBSOnMultiple(*args):
     # Empty variables as they are returned at the end, import OBJs and store all geometries in the scene
     sceneGeos = [x.encode('UTF8') for x in cmds.listRelatives(cmds.ls(type='mesh'), parent=True)]
     validGeos = []
-    newGeos, objGroup = iGeo(4)
+    newGeos, objGroup = iGeo(4, True)
     nonBS = []
     bSList = []
     bSCtrlLoc = None
@@ -305,7 +324,7 @@ def iBSOnMultiple(*args):
         if not cmds.listRelatives(objGroup):
             cmds.delete(objGroup)
 
-        if bSCtrlLoc:
+        if not queryIChckB():
             print "%s OBJs imported. %s OBJs blend shaped. bs_ctrl created." % \
                   (len(newGeos), len(bSList)),
         else:
@@ -413,13 +432,14 @@ def duplicateCheck(*args):
     sceneMeshes = cmds.listRelatives(cmds.ls(type='mesh'), parent=True)
     duplicateMeshes = []
     dupExists = None
-
-    for i in sceneMeshes:
-        if '|' in i or sceneMeshes.count(i) > 1:
-            dupExists = True
-            duplicateMeshes.append(i)
-        else:
-            dupExists = False
+    
+    if sceneMeshes:
+        for i in sceneMeshes:
+            if '|' in i or sceneMeshes.count(i) > 1:
+                dupExists = True
+                duplicateMeshes.append(i)
+            else:
+                dupExists = False
 
     return dupExists, duplicateMeshes
 
@@ -462,8 +482,9 @@ def queryEChckB():
     """
 
     forceOverwriteChckB = cmds.checkBox('forceOverwriteChckB', query=True, value=True)
+    ignoreDuplicatesChckB = cmds.checkBox('ignoreDuplicatesChckB', query=True, value=True)
 
-    return forceOverwriteChckB
+    return forceOverwriteChckB, ignoreDuplicatesChckB
 
 
 def deleteChckBEnable(state, *args):
@@ -506,7 +527,7 @@ def buildUI():
     cmds.radioButton('iCombine', label='Combined', onc = partial(deleteChckBEnable, 'False'), ofc = partial(deleteChckBEnable, 'True'))
 
     cmds.columnLayout(rowSpacing=2)
-    cmds.checkBox('deleteChckB', label='Delete History', width=winWidth)
+    cmds.checkBox('deleteChckB', label='Delete history', width=winWidth)
 
     # Export section
     cmds.setParent(columnMain)
@@ -523,13 +544,13 @@ def buildUI():
 
     cmds.columnLayout(rowSpacing=2)
     cmds.checkBox('forceOverwriteChckB', label='Force overwrite', width=winWidth)
+    cmds.checkBox('ignoreDuplicatesChckB', label='Ignore duplicate geos', width=winWidth,)
 
     # Footer section
     cmds.setParent(columnMain)
 
     cmds.columnLayout(rowSpacing=2)
     cmds.button(label='Help', width=winWidth, c=help)
-    cmds.button(label='TEST', width=winWidth, c=duplicateCheck)
 
     cmds.rowColumnLayout(numberOfColumns=2, columnWidth=[(1, (winWidth / 2)), (2, (winWidth / 2))])
     cmds.text(label=__author__, align='left')
