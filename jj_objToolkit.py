@@ -20,7 +20,7 @@ jj_objToolkit.showUI()
 """
 
 __author__ = "Jan Jinda"
-__version__ = "1.0.6"
+__version__ = "1.1.0"
 __documentation__ = "https://janjinda.artstation.com/pages/jj-obj-toolkit-doc"
 __email__ = "janjinda@janjinda.com"
 __website__ = "http://janjinda.com"
@@ -149,7 +149,7 @@ def eGeo(*args):
     """
 
     # Empty variable as they are returned at the end, store selection
-    selection = cmds.ls(selection=True)
+    selection = cmds.ls(selection=True, long=True)
     validGeos = []
 
     # Check if at least one geometry is selected
@@ -186,12 +186,12 @@ def eGeo(*args):
             for i in selection:
                 # Store transforms of all selected geometries
                 allMeshes = cmds.listRelatives(cmds.listRelatives(i, allDescendents=True, type='mesh', path=True),
-                                               parent=True)
+                                               parent=True, fullPath=True)
 
                 # List valid geometries
                 for ii in allMeshes:
                     # Storing long name in case there are duplicates
-                    validGeos.append(cmds.ls(i, long=True)[0])
+                    validGeos.append(ii)
 
             # Check if just single file should be exported
             if queryERadio() == 'eCombine':
@@ -435,19 +435,13 @@ def duplicateCheck(*args):
 
     if sceneMeshes:
         for i in sceneMeshes:
-            if sum(i.split('|')[-1] in ii for ii in sceneMeshes) > 1:
+            if sum('|%s' % (i.split('|')[-1]) in ii for ii in sceneMeshes) > 1:
                 dupExists = True
                 iParent = cmds.listRelatives(i, parent=True)[0]
                 if iParent not in duplicateMeshes:
                     duplicateMeshes.append(iParent.encode('UTF8'))
-            else:
-                dupExists = False
 
     return dupExists, duplicateMeshes
-
-
-def test(*args):
-    print duplicateCheck()
 
 
 def queryIRadio(*args):
@@ -508,7 +502,7 @@ def buildUI():
     """Build toolkit UI
             Returns:
                 winWidth (int): width of toolkit window in pixels
-                winHeight (int): heigth of toolkit window in pixels
+                winHeight (int): height of toolkit window in pixels
     """
 
     # UI variables
@@ -559,7 +553,6 @@ def buildUI():
 
     cmds.columnLayout(rowSpacing=2)
     cmds.button(label='Help', width=winWidth, c=help)
-    cmds.button(label='TEST', width=winWidth, c=test)
 
     cmds.rowColumnLayout(numberOfColumns=2, columnWidth=[(1, (winWidth / 2)), (2, (winWidth / 2))])
     cmds.text(label=__author__, align='left')
