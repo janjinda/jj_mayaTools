@@ -11,7 +11,6 @@ def listSceneMaterials():
     materialAssignment = {}
 
     for SG in allSG:
-        # if an sg has 'sets' members, it is used in the scene
         connectedGeos = cmds.sets(SG, q=True)
         if connectedGeos:
             material = cmds.listConnections('{}.surfaceShader'.format(SG))[0]
@@ -27,26 +26,39 @@ def getRoughnessValue(material):
 
 
 def linkToTriple():
-    # create constant if no map in material
-    # probably loop through materials first then geometries
     materialAssignment = listSceneMaterials()
 
-    tripleSwitch = cmds.shadingNode('tripleShadingSwitch', asUtility=True)
+    tripleSwitch = cmds.shadingNode('tripleShadingSwitch', asUtility=True, name='roughnessAlbedo_tripleSwitch')
+    cmds.setAttr('%s.default' % tripleSwitch, 0,0,0)
 
     inputIndex = 0
     for key in materialAssignment:
-        for geo in materialAssignment[key]:
-            shape = cmds.listRelatives(geo, shapes=True)[0]
+
+        albedoInput = cmds.listConnections('%s.specularRoughness' % key, d=False, s=True)
+
+        if not albedoInput:
+            constantColor = cmds.shadingNode('colorConstant', asUtility=True, name='constant_%s' % str(getRoughnessValue(key)).replace('.', ''))
+            cmds.setAttr('%s.inColor' % constantColor, getRoughnessValue(key), getRoughnessValue(key), getRoughnessValue(key))
+
+        for shape in materialAssignment[key]:
             cmds.connectAttr('%s.instObjGroups[0]' % shape, '%s.input[%s].inShape' % (tripleSwitch, inputIndex))
 
-            connectedMap = cmds.listConnections('rough_01', d=False, s=True)
-            if connectedMap:
-                cmds.connectAttr('%s.outColor' % connectedMap, '%s.input[%s].inTriple' % (tripleSwitch, inputIndex))
+            if albedoInput:
+                cmds.connectAttr('%s.outColor' % albedoInput[0], '%s.input[%s].inTriple' % (tripleSwitch, inputIndex))
             else:
-                constantColor = cmds.shadingNode('colorConstant', asUtility=True)
-                cmds.setAttr('%s.inColor' % constantColor, getRoughnessValue[key])
                 cmds.connectAttr('%s.outColor' % constantColor, '%s.input[%s].inTriple' % (tripleSwitch, inputIndex))
 
             inputIndex += 1
 
     return tripleSwitch
+
+
+def overrideShader():
+    aiUtilityS = cmds.shadingNode('aiUtility', asShader=True, name='roughnessAlbedo_util')
+    cmds.setAttr('%s.shadeMode' % aiUtilityS, 2)
+
+    tripleSwitch = linkToTriple()
+    cmds.connectAttr('%s.output' % tripleSwitch, '%s.color' % aiUtilityS)
+
+
+overrideShader()
