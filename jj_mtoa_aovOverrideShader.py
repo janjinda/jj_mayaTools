@@ -19,26 +19,26 @@ def listSceneMaterials():
     return materialAssignment
 
 
-def getRoughnessValue(material):
-    roughnessAlbedo = cmds.getAttr('%s.specularRoughness' % material)
+def getValue(material, slot):
+    albedoValue = cmds.getAttr('%s.%s' % (material, slot))
 
-    return roughnessAlbedo
+    return albedoValue
 
 
-def linkToTriple():
+def linkToTriple(slot):
     materialAssignment = listSceneMaterials()
 
-    tripleSwitch = cmds.shadingNode('tripleShadingSwitch', asUtility=True, name='roughnessAlbedo_tripleSwitch')
+    tripleSwitch = cmds.shadingNode('tripleShadingSwitch', asUtility=True, name=('%sAlbedo_tripleSwitch' % slot))
     cmds.setAttr('%s.default' % tripleSwitch, 0,0,0)
 
     inputIndex = 0
     for key in materialAssignment:
 
-        albedoInput = cmds.listConnections('%s.specularRoughness' % key, d=False, s=True)
+        albedoInput = cmds.listConnections('%s.%s' % (key, slot), d=False, s=True)
 
         if not albedoInput:
-            constantColor = cmds.shadingNode('colorConstant', asUtility=True, name='constant_%s' % str(getRoughnessValue(key)).replace('.', ''))
-            cmds.setAttr('%s.inColor' % constantColor, getRoughnessValue(key), getRoughnessValue(key), getRoughnessValue(key))
+            constantColor = cmds.shadingNode('colorConstant', asUtility=True, name='constant_%s_util' % str(round(getValue(key, slot),2)).replace('.', ''))
+            cmds.setAttr('%s.inColor' % constantColor, getValue(key, slot), getValue(key, slot), getValue(key, slot))
 
         for shape in materialAssignment[key]:
             cmds.connectAttr('%s.instObjGroups[0]' % shape, '%s.input[%s].inShape' % (tripleSwitch, inputIndex))
@@ -53,12 +53,9 @@ def linkToTriple():
     return tripleSwitch
 
 
-def overrideShader():
-    aiUtilityS = cmds.shadingNode('aiUtility', asShader=True, name='roughnessAlbedo_util')
+def aovOverrideShader(slot):
+    aiUtilityS = cmds.shadingNode('aiUtility', asShader=True, name='%s_albedo_aiUtil' % slot)
     cmds.setAttr('%s.shadeMode' % aiUtilityS, 2)
 
-    tripleSwitch = linkToTriple()
+    tripleSwitch = linkToTriple(slot)
     cmds.connectAttr('%s.output' % tripleSwitch, '%s.color' % aiUtilityS)
-
-
-overrideShader()
