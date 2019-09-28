@@ -1,4 +1,4 @@
-from maya import cmds
+import maya.cmds as cmds
 
 
 class ViewportToggle(object):
@@ -48,9 +48,16 @@ class ViewportToggle(object):
             stateLocators = cmds.modelEditor(self.panelFocused, query=True, locators=True)
             stateHandles = cmds.modelEditor(self.panelFocused, query=True, handles=True)
             stateJoints = cmds.modelEditor(self.panelFocused, query=True, joints=True)
+            stateDeformers = cmds.modelEditor(self.panelFocused, query=True, deformers=True)
+            stateLights = cmds.modelEditor(self.panelFocused, query=True, lights=True)
+            statePlugins = cmds.modelEditor(self.panelFocused, query=True, pluginShapes=True)
+            stateCameras = cmds.modelEditor(self.panelFocused, query=True, cameras=True)
 
             cmds.modelEditor(self.panelFocused, e=True, nurbsCurves=(not stateNurbs))
             cmds.modelEditor(self.panelFocused, e=True, locators=(not stateLocators))
             cmds.modelEditor(self.panelFocused, e=True, handles=(not stateHandles))
             cmds.modelEditor(self.panelFocused, e=True, joints=(not stateJoints))
-
+            cmds.modelEditor(self.panelFocused, e=True, deformers=(not stateDeformers))
+            cmds.modelEditor(self.panelFocused, e=True, lights=(not stateLights))
+            cmds.modelEditor(self.panelFocused, e=True, pluginShapes=(not statePlugins))
+            cmds.modelEditor(self.panelFocused, e=True, cameras=(not stateCameras))

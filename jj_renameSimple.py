@@ -1,15 +1,25 @@
-from maya import cmds
+"""
+Combinine geometry under parent of first selected geo and inherts it's name. 
+You can also choose if you want to take subdivisions and material tags in 
+consideration.
+
+Author: Jan Jinda
+Email: jj@dneg.com
+Version: 1.0.0
+"""
+# Usual imports
+import maya.cmds as cmds
 
 # Defining dictionary of possible suffixes
-SUFFIXES = {
+suffixes = {
     'mesh': 'geo',
     'joint': 'jnt',
-    'locator': 'loc',
+    'locator': 'ctr',
     'nurbsCurve': 'crv',
     'camera': None
 }
 
-DEFAULT_SUFFIX = 'grp'
+suffixDefault = 'grp'
 
 
 def renameSimple(selection=True):
@@ -46,7 +56,7 @@ def renameSimple(selection=True):
             objType = cmds.objectType(obj)
 
         # Assigning suffix from the dictionary to suffix variable
-        suffix = SUFFIXES.get(objType, DEFAULT_SUFFIX)
+        suffix = suffixes.get(objType, suffixDefault)
 
         # Skipping objects which should be without suffix (in the dictionary marked as none)
         if not suffix:

@@ -1,5 +1,5 @@
 from maya import cmds
-from PySide import QtCore, QtGui
+
 
 
 class ZoomPan(object):
@@ -143,67 +143,6 @@ class CameraToolkitUI(object):
                                                         (panDownBtn, 'top', 95), (panDownBtn, 'left', 65),
                                                         (panDownBtn, 'bottom', 5)])
 
-
-class CameraToolkitUIQt(QtGui.QDialog):
-    """Creates toolkit dialog using PyQt."""
-
-    def __init__(self):
-        super(CameraToolkitUIQt, self).__init__()
-
-        self.setWindowTitle('JJ Camera Toolkit')
-        self.toolkit = ZoomPan()
-
-        self.settings = QtCore.QSettings('JJ', 'jjCameraToolkit')
-        geometry = self.settings.value('geometry', '')
-        self.restoreGeometry(geometry)
-
-        self.buildUI()
-
-    def closeEvent(self, event):
-        geometry = self.saveGeometry()
-        self.settings.setValue('geometry', geometry)
-        super(CameraToolkitUIQt, self).closeEvent(event)
-
-    def buildUI(self):
-        print self.toolkit
-
-        layoutBox = QtGui.QVBoxLayout(self)
-
-        gBox = QtGui.QGroupBox(self)
-        gBox.setTitle('2D Zoom and Pan')
-
-        layoutGrid = QtGui.QGridLayout(self)
-        gBox.setLayout(layoutGrid)
-
-        layoutBox.addWidget(gBox)
-
-        zoomPlusBtn = QtGui.QPushButton('+')
-        zoomPlusBtn.clicked.connect(self.toolkit.zoomPlus)
-        layoutGrid.addWidget(zoomPlusBtn, 0, 0)
-
-        resetBtn = QtGui.QPushButton('Reset')
-        resetBtn.clicked.connect(self.toolkit.zoomPanReset)
-        layoutGrid.addWidget(resetBtn, 0, 1)
-
-        zoomMinusBtn = QtGui.QPushButton('-')
-        zoomMinusBtn.clicked.connect(self.toolkit.zoomMinus)
-        layoutGrid.addWidget(zoomMinusBtn, 0, 2)
-
-        panUpBtn = QtGui.QPushButton('Up')
-        panUpBtn.clicked.connect(self.toolkit.panUp)
-        layoutGrid.addWidget(panUpBtn, 1, 1)
-
-        panLeftBtn = QtGui.QPushButton('Left')
-        panLeftBtn.clicked.connect(self.toolkit.panLeft)
-        layoutGrid.addWidget(panLeftBtn, 2, 0)
-
-        panRightBtn = QtGui.QPushButton('Left')
-        panRightBtn.clicked.connect(self.toolkit.panRight)
-        layoutGrid.addWidget(panRightBtn, 2, 2)
-
-        panDownBtn = QtGui.QPushButton('Down')
-        panDownBtn.clicked.connect(self.toolkit.panDown)
-        layoutGrid.addWidget(panDownBtn, 3, 1)
 
 
 def showUI(type='cmds'):

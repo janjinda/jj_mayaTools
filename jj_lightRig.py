@@ -2,7 +2,7 @@
 Automatically generated 3 point light rig based on your scene scale.
 
 Author: Jan Jinda
-Email: janjinda@janjinda.com
+Email: jj@dneg.com
 Version: 1.0.0
 """
 
@@ -86,13 +86,13 @@ def createLightRig():
         cmds.setAttr('%s.penumbraAngle' % lightRim,50)
         cmds.setAttr('%s.useDepthMapShadows' % lightRim,1)
         cmds.setAttr('%s.dmapResolution' % lightRim,4096)
-        cmds.setAttr('%s.dmapFilterSize' % lightRim,4)
+        cmds.setAttr('%s.dmapFilterSize' % lightRim,5)
         
         cmds.setAttr('%s.useDepthMapShadows' % lightKey,1)
-        cmds.setAttr('%s.dmapResolution' % lightKey,4096)
-        cmds.setAttr('%s.dmapFilterSize' % lightKey,4)
+        cmds.setAttr('%s.dmapResolution' % lightKey,8192)
+        cmds.setAttr('%s.dmapFilterSize' % lightKey,5)
         
-        cmds.setAttr('%s.intensity' % lightFill,0.35)
+        cmds.setAttr('%s.intensity' % lightFill,0.1)
         
         # Group lights and reset pivot to origin
         lights = [lightKey, lightRim, lightFill, lightRimTarget[0]]
